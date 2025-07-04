@@ -1,4 +1,5 @@
 import threading
+import torch
 from scapy.all import get_if_list
 from . import config
 from . import main
@@ -22,6 +23,28 @@ def stop():
     else:
         print('Prote\u00e7\u00e3o n\u00e3o estava ativa.')
 
+def select_device():
+    print('\nEscolha o dispositivo:')
+    print('1. CPU')
+    print('2. GPU')
+    choice = input('Selecione: ')
+    if choice == '1':
+        device = 'cpu'
+    elif choice == '2':
+        if torch.cuda.is_available():
+            device = 'cuda'
+        else:
+            print('GPU n\u00e3o dispon\u00edvel, usando CPU')
+            device = 'cpu'
+    else:
+        print('Escolha inv\u00e1lida.')
+        return
+    if protection_thread and protection_thread.is_alive():
+        print('Pare a prote\u00e7\u00e3o antes de mudar o dispositivo.')
+        return
+    config.DEVICE = device
+    print(f'Dispositivo selecionado: {config.DEVICE}')
+
 def select_interface():
     interfaces = get_if_list()
     print('\nInterfaces dispon\u00edveis:')
@@ -43,21 +66,23 @@ def select_interface():
 def menu():
     while True:
         print(f"\nInterface atual: {config.NETWORK_INTERFACE}")
+        print(f"Dispositivo atual: {config.DEVICE}")
         print('1. Selecionar interface de rede')
-        print('2. Ativar prote\u00e7\u00e3o')
-        print('3. Desativar prote\u00e7\u00e3o')
-        print('4. Sair')
+        print('2. Selecionar dispositivo (CPU/GPU)')
+        print('3. Ativar prote\u00e7\u00e3o')
+        print('4. Desativar prote\u00e7\u00e3o')
+        print('5. Sair')
         choice = input('Escolha: ')
         if choice == '1':
             select_interface()
         elif choice == '2':
-            start()
+            select_device()
         elif choice == '3':
-            stop()
+            start()
         elif choice == '4':
+            stop()
+        elif choice == '5':
             break
 
 if __name__ == '__main__':
-    if config.PROTECTION_ENABLED:
-        start()
     menu()

@@ -20,7 +20,6 @@ services:
       - ANOMALY_MODEL=${ANOMALY_MODEL}
       - NIDS_MODEL=${NIDS_MODEL}
       - NETWORK_INTERFACE=${NETWORK_INTERFACE}
-      - PROTECTION_ENABLED=${PROTECTION_ENABLED}
     volumes:
       - ./models:/models
 volumes:
