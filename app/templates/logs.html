@@ -1,41 +1,25 @@
-<!doctype html>
-<html lang="pt-br" data-bs-theme="light">
-<head>
-    <meta charset="utf-8">
-    <title>Logs</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .severity-high { color: #dc3545; }
-        .severity-medium { color: #fd7e14; }
-        .severity-low { color: #198754; }
-    </style>
-</head>
-<body class="p-4">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="h3 mb-0">Logs</h1>
-            <div>
-                <a href="/blocked" class="btn btn-primary me-2">IPs Bloqueados</a>
-                <button id="toggle-btn" class="btn btn-secondary">Alternar tema</button>
-            </div>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-sm table-bordered" id="logs-table">
-                <thead class="table-light">
-                <tr>
-                    <th>Timestamp</th>
-                    <th>Interface</th>
-                    <th>Log</th>
-                    <th>Severity</th>
-                    <th>Anomaly</th>
-                    <th>Category</th>
-                </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="h3 mb-3">Logs</h1>
+<div class="table-responsive">
+    <table class="table table-sm table-bordered" id="logs-table">
+        <thead class="table-light">
+            <tr>
+                <th>Timestamp</th>
+                <th>Interface</th>
+                <th>Log</th>
+                <th>Severity</th>
+                <th>Anomaly</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script>
 async function fetchLogs() {
     const res = await fetch('/api/logs');
@@ -55,14 +39,7 @@ async function fetchLogs() {
         tbody.appendChild(tr);
     });
 }
-function toggleTheme() {
-    const html = document.documentElement;
-    const theme = html.getAttribute('data-bs-theme');
-    html.setAttribute('data-bs-theme', theme === 'dark' ? 'light' : 'dark');
-}
-document.getElementById('toggle-btn').addEventListener('click', toggleTheme);
 fetchLogs();
 setInterval(fetchLogs, 5000);
 </script>
-</body>
-</html>
+{% endblock %}

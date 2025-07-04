@@ -12,13 +12,13 @@ def index():
 @app.route('/logs')
 def logs():
     logs = db.get_logs(limit=200)
-    return render_template('logs.html', logs=logs)
+    return render_template('logs.html', title='Logs', logs=logs)
 
 
 @app.route('/blocked')
 def blocked():
     blocked = db.get_blocked_ips(limit=200)
-    return render_template('blocked.html', blocked=blocked)
+    return render_template('blocked.html', title='IPs Bloqueados', blocked=blocked)
 
 @app.route('/api/logs')
 def api_logs():
