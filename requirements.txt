@@ -3,3 +3,4 @@ transformers
 scapy
 python-dotenv
 flask
+torch
