@@ -1,7 +1,7 @@
 {
     "listeners": {
         "*:8080": {
-            "pass": "applications/dummy"
+            "pass": "routes"
         }
     },
     "applications": {
@@ -10,5 +10,14 @@
             "path": "/www/app",
             "module": "wsgi"
         }
-    }
+    },
+    "routes": [
+        {
+            "match": { "uri": "/hello" },
+            "action": { "proxy": "http://hello:8000" }
+        },
+        {
+            "action": { "pass": "applications/dummy" }
+        }
+    ]
 }
