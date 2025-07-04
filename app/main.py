@@ -1,6 +1,8 @@
 import time
 from scapy.all import sniff
+from scapy.layers.inet import IP, IPv6
 from . import config, db
+from . import firewall
 from .detection import Detector
 
 # Global detector instance, lazily initialized in `run()`
@@ -20,6 +22,21 @@ def packet_callback(packet):
         print(
             f"Anomaly: {result['anomaly']['label']} Severity: {result['severity']['label']} NIDS: {result['nids']['label']}"
         )
+
+        src_ip = None
+        if packet.haslayer(IP):
+            src_ip = packet[IP].src
+        elif packet.haslayer(IPv6):
+            src_ip = packet[IPv6].src
+
+        if src_ip:
+            # simple heuristic: block if severity is high or anomaly not normal
+            sev_label = str(result['severity']['label']).lower()
+            anomaly_label = str(result['anomaly']['label']).lower()
+            if sev_label == 'high' or anomaly_label not in ('normal', 'none'):
+                if firewall.block_ip(src_ip):
+                    reason = f"{result['anomaly']['label']} / {result['severity']['label']}"
+                    db.save_blocked_ip(src_ip, reason)
 
 def run():
     global detector

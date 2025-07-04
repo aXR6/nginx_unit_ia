@@ -40,6 +40,19 @@ def save_log(interface, data, severity, anomaly, nids):
         )
 
 
+def save_blocked_ip(ip, reason, status="blocked"):
+    if conn is None:
+        return
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            INSERT INTO blocked_ips (ip, reason, status)
+            VALUES (%s, %s, %s)
+            """,
+            (ip, reason, status),
+        )
+
+
 def get_logs(limit=100):
     if conn is None:
         return []
@@ -48,6 +61,21 @@ def get_logs(limit=100):
             """
             SELECT * FROM logs
             ORDER BY created_at DESC
+            LIMIT %s
+            """,
+            (limit,),
+        )
+        return cur.fetchall()
+
+
+def get_blocked_ips(limit=100):
+    if conn is None:
+        return []
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            SELECT * FROM blocked_ips
+            ORDER BY blocked_at DESC
             LIMIT %s
             """,
             (limit,),
