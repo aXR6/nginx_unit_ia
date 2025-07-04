@@ -6,9 +6,17 @@ from .detection import Detector
 def packet_callback(packet):
     if packet.haslayer('Raw'):
         payload = bytes(packet['Raw'].load).decode('latin-1', errors='ignore')
-        anomaly, severity, nids = detector.analyze(payload)
-        db.save_log(config.NETWORK_INTERFACE, payload, severity, anomaly)
-        print(f"Anomaly: {anomaly} Severity: {severity} NIDS: {nids}")
+        result = detector.analyze(payload)
+        db.save_log(
+            config.NETWORK_INTERFACE,
+            payload,
+            result['severity'],
+            result['anomaly'],
+            result['nids'],
+        )
+        print(
+            f"Anomaly: {result['anomaly']['label']} Severity: {result['severity']['label']} NIDS: {result['nids']['label']}"
+        )
 
 def run():
     db.init_db()

@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Logs</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 4px; }
+        th { background: #eee; }
+    </style>
+</head>
+<body>
+    <h1>Logs</h1>
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>Interface</th>
+            <th>Log</th>
+            <th>Severity</th>
+            <th>Anomaly</th>
+            <th>Category</th>
+        </tr>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.created_at }}</td>
+            <td>{{ log.iface }}</td>
+            <td>{{ log.log }}</td>
+            <td>{{ log.severity.label }}</td>
+            <td>{{ log.anomaly.label }}</td>
+            <td>{{ log.nids.label }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

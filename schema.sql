@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS logs (
     iface TEXT NOT NULL,
     log TEXT NOT NULL,
     severity JSONB,
-    anomaly JSONB
+    anomaly JSONB,
+    nids JSONB
 );

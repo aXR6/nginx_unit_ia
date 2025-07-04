@@ -16,14 +16,27 @@ class Detector:
     def analyze(self, text: str):
         inputs = self.anomaly_tokenizer(text, return_tensors='pt')
         anomaly_output = self.anomaly_model(**inputs)
-        anomaly_score = torch.softmax(anomaly_output.logits, dim=-1)[0].tolist()
+        anomaly_probs = torch.softmax(anomaly_output.logits, dim=-1)[0]
+        anomaly_score = anomaly_probs.tolist()
+        anomaly_label_idx = int(torch.argmax(anomaly_probs).item())
+        anomaly_label = self.anomaly_model.config.id2label.get(anomaly_label_idx, str(anomaly_label_idx))
 
         sev_inputs = self.severity_tokenizer(text, return_tensors='pt')
         sev_output = self.severity_model(**sev_inputs)
-        severity_score = torch.softmax(sev_output.logits, dim=-1)[0].tolist()
+        sev_probs = torch.softmax(sev_output.logits, dim=-1)[0]
+        severity_score = sev_probs.tolist()
+        severity_label_idx = int(torch.argmax(sev_probs).item())
+        severity_label = self.severity_model.config.id2label.get(severity_label_idx, str(severity_label_idx))
 
         nids_inputs = self.nids_tokenizer(text, return_tensors='pt')
         nids_output = self.nids_model(**nids_inputs)
-        nids_score = torch.softmax(nids_output.logits, dim=-1)[0].tolist()
+        nids_probs = torch.softmax(nids_output.logits, dim=-1)[0]
+        nids_score = nids_probs.tolist()
+        nids_label_idx = int(torch.argmax(nids_probs).item())
+        nids_label = self.nids_model.config.id2label.get(nids_label_idx, str(nids_label_idx))
 
-        return anomaly_score, severity_score, nids_score
+        return {
+            'anomaly': {'label': anomaly_label, 'score': anomaly_score},
+            'severity': {'label': severity_label, 'score': severity_score},
+            'nids': {'label': nids_label, 'score': nids_score},
+        }
