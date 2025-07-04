@@ -20,7 +20,12 @@ class Detector:
         self.nids_model = AutoModelForSequenceClassification.from_pretrained(config.NIDS_MODEL).to(self.device)
 
     def analyze(self, text: str):
-        inputs = self.anomaly_tokenizer(text, return_tensors='pt')
+        inputs = self.anomaly_tokenizer(
+            text,
+            return_tensors="pt",
+            truncation=True,
+            max_length=self.anomaly_tokenizer.model_max_length,
+        )
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
         anomaly_output = self.anomaly_model(**inputs)
         anomaly_probs = torch.softmax(anomaly_output.logits, dim=-1)[0]
@@ -28,7 +33,12 @@ class Detector:
         anomaly_label_idx = int(torch.argmax(anomaly_probs).item())
         anomaly_label = self.anomaly_model.config.id2label.get(anomaly_label_idx, str(anomaly_label_idx))
 
-        sev_inputs = self.severity_tokenizer(text, return_tensors='pt')
+        sev_inputs = self.severity_tokenizer(
+            text,
+            return_tensors="pt",
+            truncation=True,
+            max_length=self.severity_tokenizer.model_max_length,
+        )
         sev_inputs = {k: v.to(self.device) for k, v in sev_inputs.items()}
         sev_output = self.severity_model(**sev_inputs)
         sev_probs = torch.softmax(sev_output.logits, dim=-1)[0]
@@ -36,7 +46,12 @@ class Detector:
         severity_label_idx = int(torch.argmax(sev_probs).item())
         severity_label = self.severity_model.config.id2label.get(severity_label_idx, str(severity_label_idx))
 
-        nids_inputs = self.nids_tokenizer(text, return_tensors='pt')
+        nids_inputs = self.nids_tokenizer(
+            text,
+            return_tensors="pt",
+            truncation=True,
+            max_length=self.nids_tokenizer.model_max_length,
+        )
         nids_inputs = {k: v.to(self.device) for k, v in nids_inputs.items()}
         nids_output = self.nids_model(**nids_inputs)
         nids_probs = torch.softmax(nids_output.logits, dim=-1)[0]
