@@ -1,0 +1,14 @@
+{
+    "listeners": {
+        "*:8080": {
+            "pass": "applications/dummy"
+        }
+    },
+    "applications": {
+        "dummy": {
+            "type": "python",
+            "path": "/www/app",
+            "module": "wsgi"
+        }
+    }
+}

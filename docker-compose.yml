@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  unit:
+    image: nginx/unit:1.31.1-python3.11
+    volumes:
+      - ./app:/www/app
+      - ./unit-config.json:/docker-entrypoint.d/unit-config.json
+    ports:
+      - "8080:8080"
+  detector:
+    build: .
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - SEMANTIC_MODEL=${SEMANTIC_MODEL}
+      - SEVERITY_MODEL=${SEVERITY_MODEL}
+      - ANOMALY_MODEL=${ANOMALY_MODEL}
+      - NIDS_MODEL=${NIDS_MODEL}
+      - NETWORK_INTERFACE=${NETWORK_INTERFACE}
+      - PROTECTION_ENABLED=${PROTECTION_ENABLED}
+    volumes:
+      - ./models:/models
+    depends_on:
+      - db
+volumes:
+  db_data:
+  models:
