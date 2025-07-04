@@ -6,4 +6,4 @@ services:
       - ./app:/www/app
       - ./unit-config.json:/docker-entrypoint.d/unit-config.json
     ports:
-      - "8080:8080"
+      - "${UNIT_PORT:-8090}:8080"
