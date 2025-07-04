@@ -7,7 +7,7 @@ Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit]
 - `Dockerfile` constroi a imagem para a aplicação, baixando os modelos necessários.
 - `app/` contém o código Python responsável pela detecção.
 - `schema.sql` contém a estrutura do banco de dados.
-- `.env.example` é um modelo de configuração (copie para `.env`). Inclui a variável `DEVICE` que define o dispositivo padrão (CPU ou GPU).
+- `.env.example` é um modelo de configuração (copie para `.env`). Inclui a variável `DEVICE` que define o dispositivo padrão (CPU ou GPU) e `UNIT_PORT` para alterar a porta do proxy Nginx Unit.
 
 ## Uso rápido
 1. Copie `.env.example` para `.env` e ajuste as variáveis.
