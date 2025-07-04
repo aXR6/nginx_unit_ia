@@ -1,5 +1,5 @@
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import RealDictCursor, Json
 from . import config
 
 conn = None
@@ -21,13 +21,29 @@ def init_db():
             cur.execute(f.read())
 
 
-def save_log(interface, data, severity, anomaly):
+def save_log(interface, data, severity, anomaly, nids):
     if conn is None:
         return
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
-            INSERT INTO logs (iface, log, severity, anomaly) VALUES (%s, %s, %s, %s)
+            INSERT INTO logs (iface, log, severity, anomaly, nids)
+            VALUES (%s, %s, %s, %s, %s)
             """,
-            (interface, data, severity, anomaly),
+            (interface, data, Json(severity), Json(anomaly), Json(nids)),
         )
+
+
+def get_logs(limit=100):
+    if conn is None:
+        return []
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            SELECT * FROM logs
+            ORDER BY created_at DESC
+            LIMIT %s
+            """,
+            (limit,),
+        )
+        return cur.fetchall()
