@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   unit:
-    image: nginx/unit:1.31.1-python3.11
+    image: nginx/unit:1.29.1-python3.11
     volumes:
       - ./app:/www/app
       - ./unit-config.json:/docker-entrypoint.d/unit-config.json
