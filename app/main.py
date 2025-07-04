@@ -3,6 +3,9 @@ from scapy.all import sniff
 from . import config, db
 from .detection import Detector
 
+# Global detector instance, lazily initialized in `run()`
+detector = None
+
 def packet_callback(packet):
     if packet.haslayer('Raw'):
         payload = bytes(packet['Raw'].load).decode('latin-1', errors='ignore')
@@ -19,10 +22,12 @@ def packet_callback(packet):
         )
 
 def run():
+    global detector
+    if detector is None:
+        detector = Detector()
     db.init_db()
     print(f"Monitorando interface {config.NETWORK_INTERFACE}...")
     sniff(iface=config.NETWORK_INTERFACE, prn=packet_callback, store=False)
 
 if __name__ == '__main__':
-    detector = Detector()
     run()
