@@ -1,12 +1,16 @@
 import threading
+from werkzeug.serving import make_server
 import torch
 from scapy.all import get_if_list
 from . import config
 from . import main
+from . import wsgi
 
 protection_thread = None
+web_server = None
+web_thread = None
 
-def start():
+def start_protection():
     global protection_thread
     if protection_thread is None or not protection_thread.is_alive():
         protection_thread = threading.Thread(target=main.run, daemon=True)
@@ -15,13 +19,38 @@ def start():
     else:
         print('Prote\u00e7\u00e3o j\u00e1 em execu\u00e7\u00e3o.')
 
-def stop():
+def stop_protection():
     global protection_thread
     if protection_thread and protection_thread.is_alive():
         # no simple way to stop sniff; rely on program exit
         print('Pare o container para desativar.')
     else:
         print('Prote\u00e7\u00e3o n\u00e3o estava ativa.')
+
+
+def start_panel():
+    """Start the web panel in a background thread."""
+    global web_server, web_thread
+    if web_server is None:
+        web_server = make_server("0.0.0.0", config.WEB_PANEL_PORT, wsgi.app)
+        web_thread = threading.Thread(target=web_server.serve_forever, daemon=True)
+        web_thread.start()
+        print(f"Painel web em http://localhost:{config.WEB_PANEL_PORT}/logs")
+    else:
+        print("Painel web j\u00e1 em execu\u00e7\u00e3o.")
+
+
+def stop_panel():
+    """Stop the web panel if running."""
+    global web_server, web_thread
+    if web_server is not None:
+        web_server.shutdown()
+        web_thread.join()
+        web_server = None
+        web_thread = None
+        print("Painel web parado.")
+    else:
+        print("Painel web n\u00e3o estava ativo.")
 
 def select_device():
     print('\nEscolha o dispositivo:')
@@ -67,20 +96,28 @@ def menu():
     while True:
         print(f"\nInterface atual: {config.NETWORK_INTERFACE}")
         print(f"Dispositivo atual: {config.DEVICE}")
-        print('1. Selecionar interface de rede')
-        print('2. Selecionar dispositivo (CPU/GPU)')
-        print('3. Ativar prote\u00e7\u00e3o')
-        print('4. Desativar prote\u00e7\u00e3o')
+        running = protection_thread is not None and protection_thread.is_alive()
+        panel = web_server is not None
+        print('1. ' + ('Desativar' if running else 'Ativar') + ' prote\u00e7\u00e3o')
+        print('2. ' + ('Desativar' if panel else 'Ativar') + ' painel web')
+        print('3. Selecionar interface de rede')
+        print('4. Selecionar dispositivo (CPU/GPU)')
         print('5. Sair')
         choice = input('Escolha: ')
         if choice == '1':
-            select_interface()
+            if running:
+                stop_protection()
+            else:
+                start_protection()
         elif choice == '2':
-            select_device()
+            if panel:
+                stop_panel()
+            else:
+                start_panel()
         elif choice == '3':
-            start()
+            select_interface()
         elif choice == '4':
-            stop()
+            select_device()
         elif choice == '5':
             break
 
