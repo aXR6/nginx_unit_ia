@@ -4,14 +4,24 @@
     <meta charset="utf-8">
     <title>Logs</title>
     <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 4px; }
-        th { background: #eee; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        body.light { background: #ffffff; color: #333333; }
+        body.dark { background: #1e1e1e; color: #dddddd; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #777; padding: 4px; }
+        th { background: #555; color: #fff; }
+        body.light th { background: #eee; color: #000; }
+        .severity-high { color: #ff4c4c; }
+        .severity-medium { color: #ff9800; }
+        .severity-low { color: #4caf50; }
+        .toggle-btn { margin-bottom: 10px; }
     </style>
 </head>
-<body>
+<body class="light">
     <h1>Logs</h1>
-    <table>
+    <button class="toggle-btn" onclick="toggleTheme()">Alternar tema</button>
+    <table id="logs-table">
+        <thead>
         <tr>
             <th>Timestamp</th>
             <th>Interface</th>
@@ -20,16 +30,35 @@
             <th>Anomaly</th>
             <th>Category</th>
         </tr>
-        {% for log in logs %}
-        <tr>
-            <td>{{ log.created_at }}</td>
-            <td>{{ log.iface }}</td>
-            <td>{{ log.log }}</td>
-            <td>{{ log.severity.label }}</td>
-            <td>{{ log.anomaly.label }}</td>
-            <td>{{ log.nids.label }}</td>
-        </tr>
-        {% endfor %}
+        </thead>
+        <tbody></tbody>
     </table>
+<script>
+async function fetchLogs() {
+    const res = await fetch('/api/logs');
+    const data = await res.json();
+    const tbody = document.querySelector('#logs-table tbody');
+    tbody.innerHTML = '';
+    data.forEach(log => {
+        const tr = document.createElement('tr');
+        const sevClass = log.severity.label ? 'severity-' + log.severity.label.toLowerCase() : '';
+        tr.innerHTML = `
+            <td>${log.created_at}</td>
+            <td>${log.iface}</td>
+            <td>${log.log}</td>
+            <td class="${sevClass}">${log.severity.label}</td>
+            <td>${log.anomaly.label}</td>
+            <td>${log.nids.label}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+function toggleTheme() {
+    const body = document.body;
+    body.classList.toggle('dark');
+    body.classList.toggle('light');
+}
+fetchLogs();
+setInterval(fetchLogs, 5000);
+</script>
 </body>
 </html>

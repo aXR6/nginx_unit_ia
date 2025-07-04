@@ -1,9 +1,9 @@
 # Nginx Unit IA
 
-Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit](https://unit.nginx.org/) utilizando modelos de linguagem do HuggingFace. A aplicação roda em containers e analisa o tráfego em tempo real para detectar possíveis ataques (DoS, DDoS, etc.).
+Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit](https://unit.nginx.org/) utilizando modelos de linguagem do HuggingFace. Somente o Nginx Unit roda em container; os mecanismos de detecção, categorização e classificação devem ser executados fora do container.
 
 ## Estrutura
-- `docker-compose.yml` define dois serviços: o proxy Nginx Unit (onde sua aplicação pode ser executada) e o detector responsável pela proteção.
+- `docker-compose.yml` define apenas o serviço do proxy Nginx Unit. A aplicação de detecção deve ser executada fora dos containers.
 - `Dockerfile` constroi a imagem para a aplicação, baixando os modelos necessários.
 - `app/` contém o código Python responsável pela detecção.
 - `schema.sql` contém a estrutura do banco de dados.
@@ -11,11 +11,10 @@ Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit]
 
 ## Uso rápido
 1. Copie `.env.example` para `.env` e ajuste as variáveis.
-2. Execute `docker-compose up --build` para iniciar tudo.
-3. Utilize o menu interativo para ativar ou desativar a proteção e o painel web,
-   além de selecionar a interface de rede e o dispositivo de inferência.
-   Ao escolher a opção correspondente à interface, são listadas todas as interfaces
-   disponíveis para que você defina qual delas será monitorada.
+2. Execute `docker-compose up -d` para subir apenas o Nginx Unit.
+3. Em seguida, rode `python -m app.menu` fora dos containers para iniciar a proteção
+   e o painel web. No menu é possível selecionar a interface de rede e o dispositivo
+   de inferência.
 
 A aplicação realiza análise semântica e detecção de anomalias nos logs. Caso variáveis de banco estejam configuradas, os resultados são armazenados no PostgreSQL informado.\
-Um painel web simples (iniciado opcionalmente pelo menu) fica disponível em `http://localhost:8080/logs` para visualizar os logs registrados.
+Um painel web dinâmico (iniciado opcionalmente pelo menu) fica disponível em `http://localhost:8080/logs` para visualizar os logs registrados. O painel utiliza cores e permite alternar entre os modos claro e escuro.
