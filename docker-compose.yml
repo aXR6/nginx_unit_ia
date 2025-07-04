@@ -7,3 +7,10 @@ services:
       - ./unit-config.json:/docker-entrypoint.d/unit-config.json
     ports:
       - "${UNIT_PORT:-8090}:8080"
+    depends_on:
+      - hello
+
+  hello:
+    build: ./hello_app
+    ports:
+      - "8000:8000"
