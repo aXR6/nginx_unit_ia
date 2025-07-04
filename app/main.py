@@ -1,6 +1,6 @@
 import time
 from scapy.all import sniff
-from scapy.layers.inet import IP, IPv6
+from scapy.layers.inet import IP
 from . import config, db
 from . import firewall
 from .detection import Detector
@@ -26,8 +26,6 @@ def packet_callback(packet):
         src_ip = None
         if packet.haslayer(IP):
             src_ip = packet[IP].src
-        elif packet.haslayer(IPv6):
-            src_ip = packet[IPv6].src
 
         if src_ip:
             # simple heuristic: block if severity is high or anomaly not normal
