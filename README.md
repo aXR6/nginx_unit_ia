@@ -12,8 +12,10 @@ Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit]
 ## Uso rápido
 1. Copie `.env.example` para `.env` e ajuste as variáveis.
 2. Execute `docker-compose up --build` para iniciar tudo.
-3. Utilize o menu interativo para ativar ou desativar a proteção, selecionar a interface de rede e definir se a inferência ocorrerá em CPU ou GPU.
-   Ao escolher a opção **1**, são listadas todas as interfaces disponíveis para que você defina qual delas será monitorada.
+3. Utilize o menu interativo para ativar ou desativar a proteção e o painel web,
+   além de selecionar a interface de rede e o dispositivo de inferência.
+   Ao escolher a opção correspondente à interface, são listadas todas as interfaces
+   disponíveis para que você defina qual delas será monitorada.
 
 A aplicação realiza análise semântica e detecção de anomalias nos logs. Caso variáveis de banco estejam configuradas, os resultados são armazenados no PostgreSQL informado.\
-Um painel web simples está disponível em `http://localhost:8080/logs` para visualizar os logs registrados.
+Um painel web simples (iniciado opcionalmente pelo menu) fica disponível em `http://localhost:8080/logs` para visualizar os logs registrados.

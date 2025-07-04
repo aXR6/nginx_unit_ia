@@ -16,3 +16,4 @@ NIDS_MODEL = os.getenv('NIDS_MODEL')
 
 NETWORK_INTERFACE = os.getenv('NETWORK_INTERFACE', 'eth0')
 DEVICE = os.getenv('DEVICE', 'cpu')
+WEB_PANEL_PORT = int(os.getenv('WEB_PANEL_PORT', '8080'))
