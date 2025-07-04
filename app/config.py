@@ -15,5 +15,4 @@ ANOMALY_MODEL = os.getenv('ANOMALY_MODEL')
 NIDS_MODEL = os.getenv('NIDS_MODEL')
 
 NETWORK_INTERFACE = os.getenv('NETWORK_INTERFACE', 'eth0')
-PROTECTION_ENABLED = os.getenv('PROTECTION_ENABLED', 'true').lower() == 'true'
 DEVICE = os.getenv('DEVICE', 'cpu')
