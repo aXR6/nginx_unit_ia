@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import psycopg2
 from psycopg2.extras import RealDictCursor, Json
 from . import config
@@ -13,11 +16,14 @@ if config.POSTGRES_HOST:
     )
     conn.autocommit = True
 
+SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schema.sql"
+
+
 def init_db():
     if conn is None:
         return
     with conn.cursor() as cur:
-        with open('/app/schema.sql') as f:
+        with open(SCHEMA_PATH) as f:
             cur.execute(f.read())
 
 
