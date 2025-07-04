@@ -7,3 +7,11 @@ CREATE TABLE IF NOT EXISTS logs (
     anomaly JSONB,
     nids JSONB
 );
+
+CREATE TABLE IF NOT EXISTS blocked_ips (
+    id SERIAL PRIMARY KEY,
+    ip TEXT NOT NULL,
+    reason TEXT,
+    status TEXT NOT NULL DEFAULT 'blocked',
+    blocked_at TIMESTAMPTZ DEFAULT NOW()
+);

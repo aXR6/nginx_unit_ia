@@ -14,6 +14,12 @@ def logs():
     logs = db.get_logs(limit=200)
     return render_template('logs.html', logs=logs)
 
+
+@app.route('/blocked')
+def blocked():
+    blocked = db.get_blocked_ips(limit=200)
+    return render_template('blocked.html', blocked=blocked)
+
 @app.route('/api/logs')
 def api_logs():
     logs = db.get_logs(limit=200)
@@ -27,6 +33,21 @@ def api_logs():
             'nids': log['nids'],
         }
         for log in logs
+    ]
+    return jsonify(serialized)
+
+
+@app.route('/api/blocked')
+def api_blocked():
+    blocked = db.get_blocked_ips(limit=200)
+    serialized = [
+        {
+            'ip': item['ip'],
+            'reason': item['reason'],
+            'status': item['status'],
+            'blocked_at': str(item['blocked_at']),
+        }
+        for item in blocked
     ]
     return jsonify(serialized)
 
