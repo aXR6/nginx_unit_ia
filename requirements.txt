@@ -8,3 +8,7 @@ torch
 requests
 scikit-learn
 xgboost
+protobuf
+sentencepiece
+accelerate
+bitsandbytes
