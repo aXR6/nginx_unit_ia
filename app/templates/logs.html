@@ -11,6 +11,8 @@
                     <th>Timestamp</th>
                     <th>Interface</th>
                     <th>IP</th>
+                    <th>Tipo Ataque</th>
+                    <th>Intensidade</th>
                     <th>Log</th>
                     <th>Severity</th>
                     <th>Anomaly</th>
@@ -53,7 +55,9 @@ function addLogRow(log) {
         <td>${log.created_at}</td>
         <td>${log.iface}</td>
         <td title="${ipInfo}">${log.ip || ''}</td>
-        <td>${log.log}</td>
+        <td>${log.nids.label}</td>
+        <td>${log.severity.label}</td>
+        <td class="log-cell">${log.log}</td>
         <td class="${sevClass}" title="${log.severity.model}">${log.severity.label}</td>
         <td title="${log.anomaly.model}">${log.anomaly.label}</td>
         <td><span class="category-label" style="${catStyle}" title="${log.nids.model}">${log.nids.label}</span></td>
