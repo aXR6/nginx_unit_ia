@@ -17,8 +17,6 @@ class Detector:
             device = "cpu"
         self.device = torch.device(device)
 
-        self.semantic_tokenizer = AutoTokenizer.from_pretrained(config.SEMANTIC_MODEL)
-        self.semantic_model = AutoModelForSequenceClassification.from_pretrained(config.SEMANTIC_MODEL).to(self.device)
         self.severity_tokenizer = AutoTokenizer.from_pretrained(config.SEVERITY_MODEL)
         self.severity_model = AutoModelForSequenceClassification.from_pretrained(config.SEVERITY_MODEL).to(self.device)
         self.anomaly_tokenizer = AutoTokenizer.from_pretrained(config.ANOMALY_MODEL)
