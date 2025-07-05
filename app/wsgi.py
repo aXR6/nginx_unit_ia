@@ -22,10 +22,13 @@ app = Flask(__name__)
 db.init_db()
 
 
-@app.before_first_request
-def _sync_initial_blocked():
+def _sync_initial_blocked() -> None:
     """Ensure database reflects current UFW state on startup."""
     firewall.sync_blocked_ips_with_ufw()
+
+# ``before_first_request`` was removed in Flask 3.x. Call the function once
+# during startup instead of registering it as a hook.
+_sync_initial_blocked()
 
 # Streaming listeners and DoS tracking
 REQUEST_COUNTS = defaultdict(deque)
