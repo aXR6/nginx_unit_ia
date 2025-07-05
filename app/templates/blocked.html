@@ -16,6 +16,11 @@
             </thead>
             <tbody></tbody>
         </table>
+        <div class="d-flex justify-content-between align-items-center p-2">
+            <button id="prev-page" class="btn btn-sm btn-secondary">Anterior</button>
+            <span id="page-info" class="fw-bold"></span>
+            <button id="next-page" class="btn btn-sm btn-secondary">Próxima</button>
+        </div>
     </div>
   </div>
 </div>
@@ -35,20 +40,34 @@ function addRow(item) {
     tbody.prepend(tr);
 }
 
-async function fetchBlocked() {
-    const res = await fetch('/api/blocked');
+let currentPage = {{ page }};
+let evt;
+
+async function fetchBlocked(page) {
+    const res = await fetch(`/api/blocked?page=${page}`);
     const data = await res.json();
     const tbody = document.querySelector('#blocked-table tbody');
     tbody.innerHTML = '';
-    data.reverse().forEach(addRow);
+    data.forEach(addRow);
+    document.getElementById('page-info').textContent = `Página ${page}`;
+    currentPage = page;
+    if (evt) evt.close();
+    if (page === 1) {
+        evt = new EventSource('/stream/blocked');
+        evt.onmessage = (e) => {
+            const item = JSON.parse(e.data);
+            addRow(item);
+        };
+    }
 }
 
-fetchBlocked();
+document.getElementById('prev-page').addEventListener('click', () => {
+    if (currentPage > 1) fetchBlocked(currentPage - 1);
+});
+document.getElementById('next-page').addEventListener('click', () => {
+    fetchBlocked(currentPage + 1);
+});
 
-const evt = new EventSource('/stream/blocked');
-evt.onmessage = (e) => {
-    const item = JSON.parse(e.data);
-    addRow(item);
-};
+fetchBlocked(currentPage);
 </script>
 {% endblock %}

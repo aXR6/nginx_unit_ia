@@ -15,9 +15,18 @@
         .severity-low { color: #198754; font-weight: bold; }
         .status-blocked { color: #dc3545; font-weight: bold; }
         .status-unblocked { color: #198754; font-weight: bold; }
+        .category-label {
+            color: #000;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
+    <script>
+        window.MODEL_INFO = {{ models|tojson if models is defined else 'null' }};
+    </script>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="/logs">Nginx Unit IA</a>
@@ -29,6 +38,7 @@
                     <li class="nav-item"><a class="nav-link fw-bold text-white" style="font-size:1.1rem" href="/logs">Logs</a></li>
                     <li class="nav-item"><a class="nav-link fw-bold text-white" style="font-size:1.1rem" href="/blocked">IPs Bloqueados</a></li>
                 </ul>
+                <span id="model-info" class="navbar-text me-3 text-white small"></span>
                 <button id="toggle-btn" class="btn btn-outline-light">Alternar tema</button>
             </div>
         </div>
@@ -47,6 +57,9 @@ function toggleTheme(){
 }
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('toggle-btn').addEventListener('click', toggleTheme);
+    if (window.MODEL_INFO) {
+        document.getElementById('model-info').textContent = `S: ${MODEL_INFO.severity} | A: ${MODEL_INFO.anomaly} | N: ${MODEL_INFO.nids}`;
+    }
 });
 </script>
 {% block scripts %}{% endblock %}

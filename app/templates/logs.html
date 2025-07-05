@@ -13,12 +13,18 @@
                     <th>Log</th>
                     <th>Severity</th>
                     <th>Anomaly</th>
-                    <th>Category</th>
-                    <th>Outlier</th>
+                    <th>Ação</th>
+                    <th>Inesperado</th>
+                    <th>Modelos</th>
                 </tr>
             </thead>
             <tbody></tbody>
-</table>
+        </table>
+        <div class="d-flex justify-content-between align-items-center p-2">
+            <button id="prev-page" class="btn btn-sm btn-secondary">Anterior</button>
+            <span id="page-info" class="fw-bold"></span>
+            <button id="next-page" class="btn btn-sm btn-secondary">Próxima</button>
+        </div>
     </div>
   </div>
 </div>
@@ -26,33 +32,61 @@
 
 {% block scripts %}
 <script>
+function categoryColor(cat) {
+    let hash = 0;
+    for (let i = 0; i < cat.length; i++) {
+        hash = cat.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue},70%,80%)`;
+}
+
 function addLogRow(log) {
     const tbody = document.querySelector('#logs-table tbody');
     const tr = document.createElement('tr');
     const sevClass = log.severity.label ? 'severity-' + log.severity.label.toLowerCase() : '';
+    const catStyle = `background-color:${categoryColor(log.nids.label)}`;
+    const models = `S:${log.severity.model} A:${log.anomaly.model} N:${log.nids.model}`;
     tr.innerHTML = `
         <td>${log.created_at}</td>
         <td>${log.iface}</td>
         <td>${log.log}</td>
-        <td class="${sevClass}">${log.severity.label}</td>
-        <td>${log.anomaly.label}</td>
-        <td>${log.nids.label}</td>
-        <td>${log.semantic.outlier ? 'yes' : 'no'}</td>`;
+        <td class="${sevClass}" title="${log.severity.model}">${log.severity.label}</td>
+        <td title="${log.anomaly.model}">${log.anomaly.label}</td>
+        <td><span class="category-label" style="${catStyle}" title="${log.nids.model}">${log.nids.label}</span></td>
+        <td>${log.semantic.outlier ? 'sim' : 'não'}</td>
+        <td>${models}</td>`;
     tbody.prepend(tr);
 }
 
-async function initLogs() {
-    const res = await fetch('/api/logs');
-    const data = await res.json();
-    data.reverse().forEach(addLogRow);
+let currentPage = {{ page }};
+let evt;
 
-    const evt = new EventSource('/stream/logs');
-    evt.onmessage = (e) => {
-        const log = JSON.parse(e.data);
-        addLogRow(log);
-    };
+async function fetchLogs(page) {
+    const res = await fetch(`/api/logs?page=${page}`);
+    const data = await res.json();
+    const tbody = document.querySelector('#logs-table tbody');
+    tbody.innerHTML = '';
+    data.forEach(addLogRow);
+    document.getElementById('page-info').textContent = `Página ${page}`;
+    currentPage = page;
+    if (evt) evt.close();
+    if (page === 1) {
+        evt = new EventSource('/stream/logs');
+        evt.onmessage = (e) => {
+            const log = JSON.parse(e.data);
+            addLogRow(log);
+        };
+    }
 }
 
-initLogs();
+document.getElementById('prev-page').addEventListener('click', () => {
+    if (currentPage > 1) fetchLogs(currentPage - 1);
+});
+document.getElementById('next-page').addEventListener('click', () => {
+    fetchLogs(currentPage + 1);
+});
+
+fetchLogs(currentPage);
 </script>
 {% endblock %}
