@@ -16,3 +16,9 @@ CREATE TABLE IF NOT EXISTS blocked_ips (
     status TEXT NOT NULL DEFAULT 'blocked',
     blocked_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS whitelist_ips (
+    id SERIAL PRIMARY KEY,
+    ip TEXT NOT NULL UNIQUE,
+    added_at TIMESTAMPTZ DEFAULT NOW()
+);

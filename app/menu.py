@@ -78,6 +78,39 @@ def select_device():
     print(f"Dispositivo selecionado: {config.DEVICE}")
 
 
+def whitelist_menu():
+    from . import db
+    while True:
+        print("\nGerenciar Whitelist:")
+        print("1. Listar IPs")
+        print("2. Adicionar IP")
+        print("3. Remover IP")
+        print("4. Voltar")
+        choice = input("Escolha: ")
+        if choice == "1":
+            ips = db.get_whitelist_ips()
+            if not ips:
+                print("Nenhum IP cadastrado.")
+            else:
+                print("IPs na whitelist:")
+                for item in ips:
+                    print(" -", item["ip"])
+        elif choice == "2":
+            ip = input("IP a adicionar: ").strip()
+            if ip:
+                db.add_whitelist_ip(ip)
+                print(f"{ip} adicionado à whitelist.")
+        elif choice == "3":
+            ip = input("IP a remover: ").strip()
+            if ip:
+                db.remove_whitelist_ip(ip)
+                print(f"{ip} removido da whitelist.")
+        elif choice == "4":
+            break
+        else:
+            print("Opção inválida.")
+
+
 def menu():
     while True:
         running = _proxy_thread is not None and _proxy_thread.is_alive()
@@ -85,7 +118,8 @@ def menu():
         print("\n1. " + ("Desativar" if running else "Ativar") + " proxy")
         print("2. " + ("Desativar" if panel else "Ativar") + " painel web")
         print("3. Selecionar dispositivo (CPU/GPU)")
-        print("4. Sair")
+        print("4. Gerenciar Whitelist")
+        print("5. Sair")
         choice = input("Escolha: ")
         if choice == "1":
             if running:
@@ -100,6 +134,8 @@ def menu():
         elif choice == "3":
             select_device()
         elif choice == "4":
+            whitelist_menu()
+        elif choice == "5":
             if running:
                 stop_proxy()
             if panel:
