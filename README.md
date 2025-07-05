@@ -12,8 +12,12 @@ Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit]
 
 ## Uso rápido
 1. Copie `.env.example` para `.env` e ajuste as variáveis.
-2. Execute `docker-compose up -d` para subir o Nginx Unit e a aplicação de teste.
-3. Rode `python -m app.menu` para iniciar o proxy de segurança e, opcionalmente, o painel web.
+2. Instale as dependências Python:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Execute `docker-compose up -d` para subir o Nginx Unit e a aplicação de teste.
+4. Rode `python -m app.menu` para iniciar o proxy de segurança e, opcionalmente, o painel web.
    O menu permite ativar ou desativar o proxy, iniciar o painel e escolher CPU ou GPU para inferência.
 
 A aplicação realiza análise semântica e detecção de anomalias nos logs. Caso variáveis de banco estejam configuradas, os resultados são armazenados no PostgreSQL informado.\
