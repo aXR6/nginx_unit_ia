@@ -1,6 +1,5 @@
 psycopg2-binary
 transformers
-scapy
 python-dotenv
 flask
 werkzeug

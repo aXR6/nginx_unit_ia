@@ -1,28 +1,7 @@
 import os
-import re
 from dotenv import load_dotenv
 
 load_dotenv()
-
-
-def sanitize_ifname(iface: str) -> str:
-    """Return a clean interface name without NUL bytes or stray characters."""
-    if not isinstance(iface, str):
-        iface = str(iface)
-
-    # remove everything after the first NUL byte if present
-    iface = iface.partition("\x00")[0]
-
-    # remove any remaining NUL bytes just in case
-    iface = iface.replace("\x00", "")
-
-    # remove newlines and other common control characters
-    iface = re.sub(r"[\r\n\t\f\v]", "", iface)
-
-    # keep only common iface characters (alnum, dash, underscore, colon, dot)
-    iface = re.sub(r"[^A-Za-z0-9_:\-\.]+", "", iface)
-
-    return iface.strip()
 
 POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
@@ -35,6 +14,7 @@ SEVERITY_MODEL = os.getenv('SEVERITY_MODEL')
 ANOMALY_MODEL = os.getenv('ANOMALY_MODEL')
 NIDS_MODEL = os.getenv('NIDS_MODEL')
 
-NETWORK_INTERFACE = sanitize_ifname(os.getenv('NETWORK_INTERFACE', 'eth0'))
 DEVICE = os.getenv('DEVICE', 'cpu')
 WEB_PANEL_PORT = int(os.getenv('WEB_PANEL_PORT', '8080'))
+UNIT_PORT = int(os.getenv('UNIT_PORT', '8090'))
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://hello:8000')

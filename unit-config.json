@@ -12,12 +12,6 @@
         }
     },
     "routes": [
-        {
-            "match": { "uri": "/hello" },
-            "action": { "proxy": "http://hello:8000" }
-        },
-        {
-            "action": { "pass": "applications/dummy" }
-        }
+        { "action": { "pass": "applications/dummy" } }
     ]
 }

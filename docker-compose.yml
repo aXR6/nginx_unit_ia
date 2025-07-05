@@ -6,7 +6,7 @@ services:
       - ./app:/www/app
       - ./unit-config.json:/docker-entrypoint.d/unit-config.json
     ports:
-      - "${UNIT_PORT:-8090}:8080"
+      - "${UNIT_BACKEND_PORT:-18080}:8080"
     depends_on:
       - hello
 
