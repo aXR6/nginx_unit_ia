@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 from . import db, firewall, config, events
 from .detection import Detector
+from .attack_classifier import classify as classify_attack
 
 BACKEND_URL = config.BACKEND_URL
 
@@ -61,6 +62,7 @@ def analyze_request() -> dict:
         from .ipinfo import fetch_ip_info
         ip_info = fetch_ip_info(ip)
     result = detector.analyze(full_text)
+    attack_type = classify_attack(full_text)
     logger.info(
         "Detection result - severity: %s, anomaly: %s, nids: %s",
         result['severity']['label'],
@@ -86,6 +88,7 @@ def analyze_request() -> dict:
         'severity': result['severity'],
         'anomaly': result['anomaly'],
         'nids': result['nids'],
+        'attack_type': attack_type,
         'semantic': result['semantic'],
     })
     sev = str(result['severity']['label']).lower()
@@ -132,6 +135,8 @@ def index():
 def logs():
     page = int(request.args.get('page', '1'))
     logs = db.get_logs(limit=100, offset=(page - 1) * 100)
+    for item in logs:
+        item['attack_type'] = classify_attack(item['log'])
     models = {
         'severity': config.SEVERITY_MODEL,
         'anomaly': config.ANOMALY_MODEL,
@@ -158,8 +163,9 @@ def blocked():
 def api_logs():
     page = int(request.args.get('page', '1'))
     logs = db.get_logs(limit=100, offset=(page - 1) * 100)
-    serialized = [
-        {
+    serialized = []
+    for log in logs:
+        serialized.append({
             'created_at': str(log['created_at']),
             'iface': log['iface'],
             'log': log['log'],
@@ -168,10 +174,9 @@ def api_logs():
             'severity': log['severity'],
             'anomaly': log['anomaly'],
             'nids': log['nids'],
+            'attack_type': classify_attack(log['log']),
             'semantic': log.get('semantic'),
-        }
-        for log in logs
-    ]
+        })
     return jsonify(serialized)
 
 
