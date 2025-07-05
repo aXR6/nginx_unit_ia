@@ -9,6 +9,8 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
 - Bloqueio automático de IPs suspeitos com integração ao firewall **UFW**.
 - Painel web em Flask/Bootstrap com logs em tempo real e lista de IPs bloqueados.
 - Painel web em Flask/Bootstrap com paginação (100 itens por página), logs coloridos por categoria e exibição do modelo utilizado.
+- Cálculo de intensidade de ataque combinando resultados dos modelos.
+- Visualização detalhada de cada log com todas as informações classificadas.
 - Barra superior exibe informações resumidas dos modelos carregados.
 - Registro opcional em banco PostgreSQL com esquema definido em `schema.sql`.
 - Script interativo (`python -m app.menu`) para iniciar/parar o proxy e o painel, além de selecionar CPU ou GPU para inferência.
@@ -39,6 +41,7 @@ O proxy escutará na porta configurada em `UNIT_PORT` e encaminhará as requisi�
 
 - `/logs` &ndash; exibe os registros em tempo real usando Server-Sent Events.
 - `/blocked` &ndash; mostra os IPs bloqueados e sincroniza a lista com o UFW.
+- `/log/<id>` &ndash; página individual com detalhes completos do log.
 
 ### Firewall
 

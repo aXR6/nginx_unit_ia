@@ -13,6 +13,19 @@ ANOMALY_LABELS = {
     1: "anomaly",
 }
 
+
+def calculate_intensity(sev_label: str, anomaly_scores: list, similarity: float) -> float:
+    """Return a numeric attack intensity based on model results."""
+    sev_weight = {
+        "low": 1,
+        "medium": 2,
+        "high": 3,
+        "error": 4,
+    }.get(str(sev_label).lower(), 1)
+    anomaly_prob = max(float(s) for s in anomaly_scores)
+    intensity = sev_weight * anomaly_prob * (1.0 - float(similarity))
+    return round(intensity * 100, 2)
+
 class Detector:
     def __init__(self):
         device = config.DEVICE
@@ -88,6 +101,7 @@ class Detector:
         nids_score = nids_probs.tolist()
         nids_label_idx = int(torch.argmax(nids_probs).item())
         nids_label = self.nids_model.config.id2label.get(nids_label_idx, str(nids_label_idx))
+        intensity = calculate_intensity(severity_label, anomaly_score, similarity)
 
         return {
             'anomaly': {
@@ -111,4 +125,5 @@ class Detector:
                 'outlier': outlier,
                 'model': config.SEMANTIC_MODEL,
             },
+            'intensity': intensity,
         }

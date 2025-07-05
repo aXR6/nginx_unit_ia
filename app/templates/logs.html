@@ -44,6 +44,10 @@ function categoryColor(cat) {
     return `hsl(${hue},70%,80%)`;
 }
 
+function abbreviate(text, len = 60) {
+    return text.length > len ? text.slice(0, len) + '...' : text;
+}
+
 function addLogRow(log) {
     const tbody = document.querySelector('#logs-table tbody');
     const tr = document.createElement('tr');
@@ -51,13 +55,14 @@ function addLogRow(log) {
     const catStyle = `background-color:${categoryColor(log.nids.label)}`;
     const models = `S:${log.severity.model} A:${log.anomaly.model} N:${log.nids.model}`;
     const ipInfo = log.ip_info ? `${log.ip_info.city || ''}, ${log.ip_info.country || ''}` : '';
+    const logLink = `<a href="/log/${log.id}" class="text-decoration-none">${abbreviate(log.log)}</a>`;
     tr.innerHTML = `
         <td>${log.created_at}</td>
         <td>${log.iface}</td>
         <td title="${ipInfo}">${log.ip || ''}</td>
         <td>${log.attack_type || log.nids.label}</td>
-        <td>${log.severity.label}</td>
-        <td class="log-cell">${log.log}</td>
+        <td>${log.intensity}</td>
+        <td class="log-cell">${logLink}</td>
         <td class="${sevClass}" title="${log.severity.model}">${log.severity.label}</td>
         <td title="${log.anomaly.model}">${log.anomaly.label}</td>
         <td><span class="category-label" style="${catStyle}" title="${log.nids.model}">${log.nids.label}</span></td>
