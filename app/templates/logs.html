@@ -1,21 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="h3 mb-3">Logs</h1>
-<div class="table-responsive">
-    <table class="table table-sm table-bordered" id="logs-table">
-        <thead class="table-light">
-            <tr>
-                <th>Timestamp</th>
-                <th>Interface</th>
-                <th>Log</th>
-                <th>Severity</th>
-                <th>Anomaly</th>
-                <th>Category</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+<h1 class="h3 mb-4">Logs</h1>
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+        <table class="table table-sm table-striped table-bordered mb-0" id="logs-table">
+            <thead class="table-light">
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Interface</th>
+                    <th>Log</th>
+                    <th>Severity</th>
+                    <th>Anomaly</th>
+                    <th>Category</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+</table>
+    </div>
+  </div>
 </div>
 {% endblock %}
 

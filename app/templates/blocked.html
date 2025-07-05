@@ -1,19 +1,23 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="h3 mb-3">IPs Bloqueados</h1>
-<div class="table-responsive">
-    <table class="table table-sm table-bordered" id="blocked-table">
-        <thead class="table-light">
-            <tr>
-                <th>IP</th>
-                <th>Status</th>
-                <th>Motivo</th>
-                <th>Data/Hora</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+<h1 class="h3 mb-4">IPs Bloqueados</h1>
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+        <table class="table table-sm table-striped table-bordered mb-0" id="blocked-table">
+            <thead class="table-light">
+                <tr>
+                    <th>IP</th>
+                    <th>Status</th>
+                    <th>Motivo</th>
+                    <th>Data/Hora</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+  </div>
 </div>
 {% endblock %}
 

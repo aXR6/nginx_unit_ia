@@ -1,5 +1,6 @@
 import re
 import subprocess
+import logging
 
 from . import db
 
@@ -31,7 +32,7 @@ def block_ip(ip: str) -> bool:
         )
         return True
     except Exception as exc:
-        print(f"Erro ao bloquear IP {ip}: {exc}")
+        logging.error("Erro ao bloquear IP %s: %s", ip, exc)
         return False
 
 
@@ -45,7 +46,7 @@ def get_ufw_blocked_ips() -> set:
             check=True,
         )
     except Exception as exc:
-        print(f"Erro ao obter IPs do UFW: {exc}")
+        logging.error("Erro ao obter IPs do UFW: %s", exc)
         return set()
 
     ips = set()

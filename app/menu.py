@@ -22,8 +22,10 @@ def start_protection():
 def stop_protection():
     global protection_thread
     if protection_thread and protection_thread.is_alive():
-        # no simple way to stop sniff; rely on program exit
-        print('Pare o container para desativar.')
+        main.stop()
+        protection_thread.join()
+        protection_thread = None
+        print('Prote\u00e7\u00e3o desativada.')
     else:
         print('Prote\u00e7\u00e3o n\u00e3o estava ativa.')
 

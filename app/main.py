@@ -1,12 +1,19 @@
-import time
-from scapy.all import sniff
+import logging
+from scapy.all import AsyncSniffer
 from scapy.layers.inet import IP
 from . import config, db
 from . import firewall
 from .detection import Detector
 
 # Global detector instance, lazily initialized in `run()`
+logging.basicConfig(
+    filename='app.log',
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(message)s'
+)
+
 detector = None
+sniffer = None
 
 def packet_callback(packet):
     if packet.haslayer('Raw'):
@@ -19,8 +26,11 @@ def packet_callback(packet):
             result['anomaly'],
             result['nids'],
         )
-        print(
-            f"Anomaly: {result['anomaly']['label']} Severity: {result['severity']['label']} NIDS: {result['nids']['label']}"
+        logging.info(
+            "Anomaly: %s Severity: %s NIDS: %s",
+            result['anomaly']['label'],
+            result['severity']['label'],
+            result['nids']['label'],
         )
 
         src_ip = None
@@ -37,12 +47,24 @@ def packet_callback(packet):
                     db.save_blocked_ip(src_ip, reason)
 
 def run():
-    global detector
+    global detector, sniffer
     if detector is None:
         detector = Detector()
     db.init_db()
-    print(f"Monitorando interface {config.NETWORK_INTERFACE}...")
-    sniff(iface=config.NETWORK_INTERFACE, prn=packet_callback, store=False)
+    logging.info("Monitorando interface %s...", config.NETWORK_INTERFACE)
+    sniffer = AsyncSniffer(
+        iface=config.NETWORK_INTERFACE,
+        prn=packet_callback,
+        store=False,
+    )
+    sniffer.start()
+    sniffer.join()
+
+def stop():
+    global sniffer
+    if sniffer and sniffer.running:
+        sniffer.stop()
+        sniffer = None
 
 if __name__ == '__main__':
     run()
