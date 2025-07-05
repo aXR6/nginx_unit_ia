@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 from . import db, firewall, config, events
 from .detection import Detector
+from . import detection
 from .attack_classifier import classify as classify_attack
 
 BACKEND_URL = config.BACKEND_URL
@@ -69,7 +70,7 @@ def analyze_request() -> dict:
         result['anomaly']['label'],
         result['nids']['label'],
     )
-    db.save_log(
+    saved = db.save_log(
         'unit',
         full_text,
         result['severity'],
@@ -79,8 +80,13 @@ def analyze_request() -> dict:
         ip=ip,
         ip_info=ip_info,
     )
+    created_at = time.strftime('%Y-%m-%d %H:%M:%S')
+    log_id = None
+    if saved:
+        log_id, created_at = saved
     events.notify_log({
-        'created_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+        'id': log_id,
+        'created_at': created_at,
         'iface': 'unit',
         'log': full_text,
         'ip': ip,
@@ -90,6 +96,7 @@ def analyze_request() -> dict:
         'nids': result['nids'],
         'attack_type': attack_type,
         'semantic': result['semantic'],
+        'intensity': result['intensity'],
     })
     sev = str(result['severity']['label']).lower()
     anom = str(result['anomaly']['label']).lower()
@@ -137,6 +144,11 @@ def logs():
     logs = db.get_logs(limit=100, offset=(page - 1) * 100)
     for item in logs:
         item['attack_type'] = classify_attack(item['log'])
+        item['intensity'] = detection.calculate_intensity(
+            item['severity']['label'],
+            item['anomaly']['score'],
+            item.get('semantic', {}).get('similarity', 1.0),
+        )
     models = {
         'severity': config.SEVERITY_MODEL,
         'anomaly': config.ANOMALY_MODEL,
@@ -144,6 +156,20 @@ def logs():
         'semantic': config.SEMANTIC_MODEL,
     }
     return render_template('logs.html', title='Logs', logs=logs, page=page, models=models)
+
+
+@app.route('/log/<int:log_id>')
+def log_detail(log_id: int):
+    log = db.get_log(log_id)
+    if not log:
+        return 'Log não encontrado', 404
+    log['attack_type'] = classify_attack(log['log'])
+    intensity = detection.calculate_intensity(
+        log['severity']['label'],
+        log['anomaly']['score'],
+        log.get('semantic', {}).get('similarity', 1.0),
+    )
+    return render_template('log_detail.html', title='Detalhes do Log', log=log, intensity=intensity)
 
 
 @app.route('/blocked')
@@ -165,7 +191,13 @@ def api_logs():
     logs = db.get_logs(limit=100, offset=(page - 1) * 100)
     serialized = []
     for log in logs:
+        intensity = detection.calculate_intensity(
+            log['severity']['label'],
+            log['anomaly']['score'],
+            log.get('semantic', {}).get('similarity', 1.0),
+        )
         serialized.append({
+            'id': log.get('id'),
             'created_at': str(log['created_at']),
             'iface': log['iface'],
             'log': log['log'],
@@ -176,6 +208,7 @@ def api_logs():
             'nids': log['nids'],
             'attack_type': classify_attack(log['log']),
             'semantic': log.get('semantic'),
+            'intensity': intensity,
         })
     return jsonify(serialized)
 

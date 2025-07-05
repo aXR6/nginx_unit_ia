@@ -29,12 +29,13 @@ def init_db():
 
 def save_log(interface, data, severity, anomaly, nids, semantic=None, ip=None, ip_info=None):
     if conn is None:
-        return
+        return None
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
             INSERT INTO logs (iface, log, ip, ip_info, severity, anomaly, nids, semantic)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id, created_at
             """,
             (
                 interface,
@@ -47,6 +48,8 @@ def save_log(interface, data, severity, anomaly, nids, semantic=None, ip=None, i
                 Json(semantic) if semantic is not None else None,
             ),
         )
+        row = cur.fetchone()
+        return row['id'], row['created_at']
 
 
 def save_blocked_ip(ip, reason, status="blocked"):
@@ -75,6 +78,14 @@ def get_logs(limit=100, offset=0):
             (limit, offset),
         )
         return cur.fetchall()
+
+
+def get_log(log_id: int):
+    if conn is None:
+        return None
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute("SELECT * FROM logs WHERE id=%s", (log_id,))
+        return cur.fetchone()
 
 
 def get_blocked_ips(limit=100, offset=0):
