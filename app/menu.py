@@ -3,6 +3,7 @@ from werkzeug.serving import make_server
 import torch
 import logging
 from . import config, main, wsgi
+from .preload import download_models
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +115,9 @@ def whitelist_menu():
 
 
 def menu():
+    print("Verificando modelos, aguarde...")
+    download_models()
+    print("Modelos prontos.")
     while True:
         running = _proxy_thread is not None and _proxy_thread.is_alive()
         panel = _panel_server is not None
