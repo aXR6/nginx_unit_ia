@@ -3,6 +3,12 @@ import torch
 import logging
 from . import config
 
+# Default label mapping for anomaly model if config lacks id2label
+ANOMALY_LABELS = {
+    0: "normal",
+    1: "anomaly",
+}
+
 class Detector:
     def __init__(self):
         device = config.DEVICE
@@ -32,7 +38,11 @@ class Detector:
         anomaly_probs = torch.softmax(anomaly_output.logits, dim=-1)[0]
         anomaly_score = anomaly_probs.tolist()
         anomaly_label_idx = int(torch.argmax(anomaly_probs).item())
-        anomaly_label = self.anomaly_model.config.id2label.get(anomaly_label_idx, str(anomaly_label_idx))
+        anomaly_label = self.anomaly_model.config.id2label.get(
+            anomaly_label_idx, str(anomaly_label_idx)
+        )
+        if isinstance(anomaly_label, str) and anomaly_label.startswith("LABEL_"):
+            anomaly_label = ANOMALY_LABELS.get(anomaly_label_idx, anomaly_label)
 
         sev_inputs = self.severity_tokenizer(
             text,
