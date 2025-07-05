@@ -26,6 +26,17 @@
             white-space: pre-wrap;
             word-break: break-word;
         }
+        .grid-container { display: flex; flex-direction: column; width: 100%; }
+        .grid-header, .grid-row {
+            display: grid;
+            grid-template-columns: 12ch 8ch 12ch 15ch 8ch 1fr 8ch 8ch 8ch 10ch 12ch;
+            gap: 0.5rem;
+            padding: 0.25rem;
+            align-items: start;
+        }
+        .grid-header { background-color: var(--bs-light); font-weight: bold; }
+        .grid-row:nth-child(odd) { background-color: var(--bs-table-striped-bg); }
+        .grid-row > div { overflow-wrap: anywhere; }
     </style>
 </head>
 <body>

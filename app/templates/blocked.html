@@ -5,17 +5,15 @@
 <div class="card">
   <div class="card-body p-0">
     <div class="table-responsive">
-        <table class="table table-sm table-striped table-bordered mb-0" id="blocked-table">
-            <thead class="table-light">
-                <tr>
-                    <th>IP</th>
-                    <th>Status</th>
-                    <th>Motivo</th>
-                    <th>Data/Hora</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div id="blocked-grid" class="grid-container">
+            <div class="grid-header">
+                <div>IP</div>
+                <div>Status</div>
+                <div>Motivo</div>
+                <div>Data/Hora</div>
+            </div>
+            <div id="blocked-body"></div>
+        </div>
         <div class="d-flex justify-content-between align-items-center p-2">
             <button id="prev-page" class="btn btn-sm btn-secondary">Anterior</button>
             <span id="page-info" class="fw-bold"></span>
@@ -29,15 +27,16 @@
 {% block scripts %}
 <script>
 function addRow(item) {
-    const tbody = document.querySelector('#blocked-table tbody');
-    const tr = document.createElement('tr');
+    const container = document.getElementById('blocked-body');
+    const row = document.createElement('div');
+    row.className = 'grid-row';
     const statusClass = item.status === 'blocked' ? 'status-blocked' : 'status-unblocked';
-    tr.innerHTML = `
-        <td>${item.ip}</td>
-        <td class="${statusClass}">${item.status}</td>
-        <td>${item.reason || ''}</td>
-        <td>${item.blocked_at}</td>`;
-    tbody.prepend(tr);
+    row.innerHTML = `
+        <div>${item.ip}</div>
+        <div class="${statusClass}">${item.status}</div>
+        <div>${item.reason || ''}</div>
+        <div>${item.blocked_at}</div>`;
+    container.prepend(row);
 }
 
 let currentPage = {{ page }};
@@ -46,8 +45,8 @@ let evt;
 async function fetchBlocked(page) {
     const res = await fetch(`/api/blocked?page=${page}`);
     const data = await res.json();
-    const tbody = document.querySelector('#blocked-table tbody');
-    tbody.innerHTML = '';
+    const body = document.getElementById('blocked-body');
+    body.innerHTML = '';
     data.forEach(addRow);
     document.getElementById('page-info').textContent = `Página ${page}`;
     currentPage = page;
