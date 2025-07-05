@@ -15,6 +15,8 @@ Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit]
 3. Em seguida, rode `python -m app.menu` fora dos containers para iniciar a proteção
    e o painel web. No menu é possível selecionar a interface de rede e o dispositivo
    de inferência.
+   Ao escolher `5. Sair`, quaisquer serviços iniciados pelas opções anteriores são
+   finalizados automaticamente.
 
 A aplicação realiza análise semântica e detecção de anomalias nos logs. Caso variáveis de banco estejam configuradas, os resultados são armazenados no PostgreSQL informado.\
 Um painel web dinâmico (iniciado opcionalmente pelo menu) fica disponível em `http://localhost:8080/logs` para visualizar os logs registrados. O painel utiliza **Bootstrap** para uma interface mais limpa e permite alternar entre os modos claro e escuro.
