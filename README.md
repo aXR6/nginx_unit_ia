@@ -31,7 +31,7 @@ Execute o menu interativo para controlar o proxy e o painel:
 python -m app.menu
 ```
 
-O proxy escutará na porta configurada em `UNIT_PORT` e encaminhará as requisições para `BACKEND_URL`. O painel estará disponível em `http://localhost:8080` (ou porta definida em `WEB_PANEL_PORT`).
+O proxy escutará na porta configurada em `UNIT_PORT` e encaminhará as requisições para `BACKEND_URL`. Esse backend normalmente é o serviço do Nginx Unit exposto na porta `UNIT_BACKEND_PORT`. O painel estará disponível em `http://localhost:8080` (ou porta definida em `WEB_PANEL_PORT`).
 
 ### Painel
 
@@ -40,7 +40,7 @@ O proxy escutará na porta configurada em `UNIT_PORT` e encaminhará as requisi�
 
 ### Firewall
 
-Quando uma requisição é classificada como perigosa ou excede o limiar de negação de serviço, o IP de origem é bloqueado no UFW e gravado no banco (se configurado). Os dados também ficam salvos em arquivo no caminho definido por `LOG_FILE`.
+Quando uma requisição é classificada como perigosa ou excede o limiar de negação de serviço, o IP de origem é bloqueado no UFW **apenas para a porta configurada em `UNIT_BACKEND_PORT`** e gravado no banco (se configurado). Os dados também ficam salvos em arquivo no caminho definido por `LOG_FILE`.
 
 ## Banco de dados
 
