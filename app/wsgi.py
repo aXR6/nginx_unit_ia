@@ -2,7 +2,6 @@ from flask import Flask, render_template, jsonify, request, Response, stream_wit
 import requests
 import json
 import time
-import queue
 from collections import defaultdict, deque
 import logging
 
@@ -11,7 +10,7 @@ from .logging_setup import configure_logging
 configure_logging()
 logger = logging.getLogger(__name__)
 
-from . import db, firewall, config
+from . import db, firewall, config, events
 from .detection import Detector
 
 BACKEND_URL = config.BACKEND_URL
@@ -23,19 +22,9 @@ app = Flask(__name__)
 db.init_db()
 
 # Streaming listeners and DoS tracking
-log_listeners = []
 REQUEST_COUNTS = defaultdict(deque)
 REQUEST_WINDOW = 10  # seconds
 DOS_THRESHOLD = 20
-
-
-def notify_log(entry: dict) -> None:
-    """Send log entry to all active listeners."""
-    for q in list(log_listeners):
-        try:
-            q.put_nowait(entry)
-        except Exception:
-            pass
 
 
 @app.before_request
@@ -68,7 +57,7 @@ def analyze_request() -> dict:
         result['nids'],
         result['semantic'],
     )
-    notify_log({
+    events.notify_log({
         'created_at': time.strftime('%Y-%m-%d %H:%M:%S'),
         'iface': 'unit',
         'log': full_text,
@@ -90,6 +79,12 @@ def analyze_request() -> dict:
             if firewall.block_ip(ip):
                 logger.warning("IP %s blocked due to DoS detection", ip)
                 db.save_blocked_ip(ip, 'dos')
+                events.notify_blocked({
+                    'ip': ip,
+                    'reason': 'dos',
+                    'status': 'blocked',
+                    'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+                })
                 return {'blocked': True}
 
         if sev in ('error', 'high') or (anom not in ('normal', 'none') and sem_outlier):
@@ -97,6 +92,12 @@ def analyze_request() -> dict:
                 reason = f"{result['anomaly']['label']} / {result['severity']['label']}"
                 logger.warning("IP %s blocked: %s", ip, reason)
                 db.save_blocked_ip(ip, reason)
+                events.notify_blocked({
+                    'ip': ip,
+                    'reason': reason,
+                    'status': 'blocked',
+                    'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+                })
                 return {'blocked': True}
     return result
 
@@ -138,14 +139,27 @@ def api_logs():
 @app.route('/stream/logs')
 def stream_logs():
     def generator():
-        q = queue.Queue()
-        log_listeners.append(q)
+        q = events.register_log_listener()
         try:
             while True:
                 entry = q.get()
                 yield f"data: {json.dumps(entry)}\n\n"
         finally:
-            log_listeners.remove(q)
+            events.unregister_log_listener(q)
+
+    return Response(stream_with_context(generator()), mimetype='text/event-stream')
+
+
+@app.route('/stream/blocked')
+def stream_blocked():
+    def generator():
+        q = events.register_blocked_listener()
+        try:
+            while True:
+                entry = q.get()
+                yield f"data: {json.dumps(entry)}\n\n"
+        finally:
+            events.unregister_blocked_listener(q)
 
     return Response(stream_with_context(generator()), mimetype='text/event-stream')
 

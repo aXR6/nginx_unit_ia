@@ -23,23 +23,32 @@
 
 {% block scripts %}
 <script>
+function addRow(item) {
+    const tbody = document.querySelector('#blocked-table tbody');
+    const tr = document.createElement('tr');
+    const statusClass = item.status === 'blocked' ? 'status-blocked' : 'status-unblocked';
+    tr.innerHTML = `
+        <td>${item.ip}</td>
+        <td class="${statusClass}">${item.status}</td>
+        <td>${item.reason || ''}</td>
+        <td>${item.blocked_at}</td>`;
+    tbody.prepend(tr);
+}
+
 async function fetchBlocked() {
     const res = await fetch('/api/blocked');
     const data = await res.json();
     const tbody = document.querySelector('#blocked-table tbody');
     tbody.innerHTML = '';
-    data.forEach(item => {
-        const tr = document.createElement('tr');
-        const statusClass = item.status === 'blocked' ? 'status-blocked' : 'status-unblocked';
-        tr.innerHTML = `
-            <td>${item.ip}</td>
-            <td class="${statusClass}">${item.status}</td>
-            <td>${item.reason || ''}</td>
-            <td>${item.blocked_at}</td>`;
-        tbody.appendChild(tr);
-    });
+    data.reverse().forEach(addRow);
 }
+
 fetchBlocked();
-setInterval(fetchBlocked, 5000);
+
+const evt = new EventSource('/stream/blocked');
+evt.onmessage = (e) => {
+    const item = JSON.parse(e.data);
+    addRow(item);
+};
 </script>
 {% endblock %}
