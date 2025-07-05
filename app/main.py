@@ -58,8 +58,9 @@ def run():
     db.init_db()
     # Defensive sanitization in case the interface contains unexpected characters
     iface = config.sanitize_ifname(config.NETWORK_INTERFACE)
-    if not iface:
+    if not iface or "\x00" in iface:
         print("Interface invalida")
+        logging.error("Interface continha caracteres invalidos")
         return
 
     try:
@@ -68,7 +69,7 @@ def run():
         print(f"Interface invalida: {iface}")
         logging.error("Interface invalida: %s", iface)
         return
-    logging.info("Monitorando interface %s...", iface)
+    logging.info("Monitorando interface %s...", repr(iface))
     try:
         sniffer = AsyncSniffer(
             iface=iface,
