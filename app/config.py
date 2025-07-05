@@ -15,6 +15,8 @@ ANOMALY_MODEL = os.getenv('ANOMALY_MODEL')
 NIDS_MODEL = os.getenv('NIDS_MODEL')
 
 SEMANTIC_THRESHOLD = float(os.getenv('SEMANTIC_THRESHOLD', '0.5'))
+BLOCK_SEVERITY_LEVELS = [s.strip().lower() for s in os.getenv('BLOCK_SEVERITY_LEVELS', 'error,high').split(',')]
+BLOCK_ANOMALY_THRESHOLD = float(os.getenv('BLOCK_ANOMALY_THRESHOLD', '0.5'))
 
 DEVICE = os.getenv('DEVICE', 'cpu')
 WEB_PANEL_PORT = int(os.getenv('WEB_PANEL_PORT', '8080'))
