@@ -88,3 +88,40 @@ def get_blocked_ips(limit=100):
             (limit,),
         )
         return cur.fetchall()
+
+
+def add_whitelist_ip(ip: str):
+    if conn is None:
+        return
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            INSERT INTO whitelist_ips (ip)
+            VALUES (%s)
+            ON CONFLICT (ip) DO NOTHING
+            """,
+            (ip,),
+        )
+
+
+def remove_whitelist_ip(ip: str):
+    if conn is None:
+        return
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute("DELETE FROM whitelist_ips WHERE ip=%s", (ip,))
+
+
+def get_whitelist_ips():
+    if conn is None:
+        return []
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute("SELECT ip FROM whitelist_ips ORDER BY ip")
+        return cur.fetchall()
+
+
+def is_ip_whitelisted(ip: str) -> bool:
+    if conn is None:
+        return False
+    with conn.cursor() as cur:
+        cur.execute("SELECT 1 FROM whitelist_ips WHERE ip=%s", (ip,))
+        return cur.fetchone() is not None

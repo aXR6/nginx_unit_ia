@@ -31,3 +31,9 @@ A detecção de ameaças também integra-se ao firewall **UFW**. Sempre que um a
 O painel web possui a página `http://localhost:8080/blocked` que exibe todos os IPs bloqueados, seu status, motivo e data/hora do bloqueio.
 Sempre que essa página é acessada, a lista é sincronizada com as regras atuais do UFW, garantindo que o banco reflita o estado real do firewall.
 O proxy também monitora a quantidade de requisições de cada IP e bloqueia automaticamente padrões que indiquem ataques de negação de serviço.
+
+### Whitelist
+
+IPs que nunca devem ser bloqueados podem ser cadastrados em uma whitelist. Os endereços
+ficam armazenados no banco de dados e podem ser gerenciados pelo menu interativo do
+proxy. Utilize a nova opção **Gerenciar Whitelist** para listar, adicionar ou remover IPs.

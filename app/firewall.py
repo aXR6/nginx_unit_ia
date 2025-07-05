@@ -7,6 +7,11 @@ logger = logging.getLogger(__name__)
 from . import db
 
 
+def is_whitelisted(ip: str) -> bool:
+    """Return True if the IP is present in the whitelist."""
+    return db.is_ip_whitelisted(ip)
+
+
 def is_ip_blocked(ip: str) -> bool:
     """Check if the IP already appears in UFW rules."""
     try:
@@ -23,6 +28,9 @@ def is_ip_blocked(ip: str) -> bool:
 
 def block_ip(ip: str) -> bool:
     """Block the given IP using UFW. Returns True if command succeeds."""
+    if is_whitelisted(ip):
+        logger.info("IP %s is whitelisted; skipping block", ip)
+        return False
     if is_ip_blocked(ip):
         return False
     try:
