@@ -9,6 +9,15 @@
         document.documentElement.setAttribute('data-bs-theme', savedTheme);
     </script>
     <style>
+        :root {
+            --info-header-bg: var(--bs-primary);
+            --info-header-color: #fff;
+            --info-border: var(--bs-border-color);
+            --category-text-color: #000;
+        }
+        [data-bs-theme="dark"] {
+            --category-text-color: #fff;
+        }
         body { padding-top: 70px; }
         .severity-high { color: #dc3545; font-weight: bold; }
         .severity-medium { color: #fd7e14; font-weight: bold; }
@@ -16,7 +25,7 @@
         .status-blocked { color: #dc3545; font-weight: bold; }
         .status-unblocked { color: #198754; font-weight: bold; }
         .category-label {
-            color: #000;
+            color: var(--category-text-color);
             font-weight: bold;
             padding: 2px 4px;
             border-radius: 4px;
@@ -27,6 +36,11 @@
             word-break: break-word;
         }
         .grid-container { display: flex; flex-direction: column; width: 100%; }
+        .info-table {
+            border: 1px solid var(--info-border);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
         .grid-header, .grid-row {
             display: grid;
             grid-template-columns: 12ch 8ch 12ch 15ch 8ch 1fr 8ch 8ch 8ch 10ch 12ch;
@@ -34,7 +48,11 @@
             padding: 0.25rem;
             align-items: start;
         }
-        .grid-header { background-color: var(--bs-light); font-weight: bold; }
+        .grid-header {
+            background-color: var(--info-header-bg);
+            color: var(--info-header-color);
+            font-weight: bold;
+        }
         .grid-row:nth-child(odd) { background-color: var(--bs-table-striped-bg); }
         .grid-row > div { overflow-wrap: anywhere; }
     </style>
