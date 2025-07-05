@@ -90,12 +90,25 @@ class Detector:
         nids_label = self.nids_model.config.id2label.get(nids_label_idx, str(nids_label_idx))
 
         return {
-            'anomaly': {'label': anomaly_label, 'score': anomaly_score},
-            'severity': {'label': severity_label, 'score': severity_score},
-            'nids': {'label': nids_label, 'score': nids_score},
+            'anomaly': {
+                'label': anomaly_label,
+                'score': anomaly_score,
+                'model': config.ANOMALY_MODEL,
+            },
+            'severity': {
+                'label': severity_label,
+                'score': severity_score,
+                'model': config.SEVERITY_MODEL,
+            },
+            'nids': {
+                'label': nids_label,
+                'score': nids_score,
+                'model': config.NIDS_MODEL,
+            },
             'semantic': {
                 'embedding': embedding.cpu().tolist(),
                 'similarity': similarity,
                 'outlier': outlier,
+                'model': config.SEMANTIC_MODEL,
             },
         }

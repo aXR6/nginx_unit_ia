@@ -60,7 +60,7 @@ def save_blocked_ip(ip, reason, status="blocked"):
         )
 
 
-def get_logs(limit=100):
+def get_logs(limit=100, offset=0):
     if conn is None:
         return []
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -68,14 +68,14 @@ def get_logs(limit=100):
             """
             SELECT * FROM logs
             ORDER BY created_at DESC
-            LIMIT %s
+            LIMIT %s OFFSET %s
             """,
-            (limit,),
+            (limit, offset),
         )
         return cur.fetchall()
 
 
-def get_blocked_ips(limit=100):
+def get_blocked_ips(limit=100, offset=0):
     if conn is None:
         return []
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -83,9 +83,9 @@ def get_blocked_ips(limit=100):
             """
             SELECT * FROM blocked_ips
             ORDER BY blocked_at DESC
-            LIMIT %s
+            LIMIT %s OFFSET %s
             """,
-            (limit,),
+            (limit, offset),
         )
         return cur.fetchall()
 

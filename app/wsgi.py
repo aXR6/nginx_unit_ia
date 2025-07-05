@@ -108,19 +108,28 @@ def index():
 
 @app.route('/logs')
 def logs():
-    logs = db.get_logs(limit=200)
-    return render_template('logs.html', title='Logs', logs=logs)
+    page = int(request.args.get('page', '1'))
+    logs = db.get_logs(limit=100, offset=(page - 1) * 100)
+    models = {
+        'severity': config.SEVERITY_MODEL,
+        'anomaly': config.ANOMALY_MODEL,
+        'nids': config.NIDS_MODEL,
+        'semantic': config.SEMANTIC_MODEL,
+    }
+    return render_template('logs.html', title='Logs', logs=logs, page=page, models=models)
 
 
 @app.route('/blocked')
 def blocked():
+    page = int(request.args.get('page', '1'))
     firewall.sync_blocked_ips_with_ufw()
-    blocked = db.get_blocked_ips(limit=200)
-    return render_template('blocked.html', title='IPs Bloqueados', blocked=blocked)
+    blocked = db.get_blocked_ips(limit=100, offset=(page - 1) * 100)
+    return render_template('blocked.html', title='IPs Bloqueados', blocked=blocked, page=page)
 
 @app.route('/api/logs')
 def api_logs():
-    logs = db.get_logs(limit=200)
+    page = int(request.args.get('page', '1'))
+    logs = db.get_logs(limit=100, offset=(page - 1) * 100)
     serialized = [
         {
             'created_at': str(log['created_at']),
@@ -166,8 +175,9 @@ def stream_blocked():
 
 @app.route('/api/blocked')
 def api_blocked():
+    page = int(request.args.get('page', '1'))
     firewall.sync_blocked_ips_with_ufw()
-    blocked = db.get_blocked_ips(limit=200)
+    blocked = db.get_blocked_ips(limit=100, offset=(page - 1) * 100)
     serialized = [
         {
             'ip': item['ip'],

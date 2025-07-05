@@ -8,6 +8,8 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
 - Detecção semântica de comportamentos fora do padrão através de embeddings.
 - Bloqueio automático de IPs suspeitos com integração ao firewall **UFW**.
 - Painel web em Flask/Bootstrap com logs em tempo real e lista de IPs bloqueados.
+- Painel web em Flask/Bootstrap com paginação (100 itens por página), logs coloridos por categoria e exibição do modelo utilizado.
+- Barra superior exibe informações resumidas dos modelos carregados.
 - Registro opcional em banco PostgreSQL com esquema definido em `schema.sql`.
 - Script interativo (`python -m app.menu`) para iniciar/parar o proxy e o painel, além de selecionar CPU ou GPU para inferência.
 
