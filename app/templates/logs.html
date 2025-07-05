@@ -55,7 +55,7 @@ function addLogRow(log) {
         <td>${log.created_at}</td>
         <td>${log.iface}</td>
         <td title="${ipInfo}">${log.ip || ''}</td>
-        <td>${log.nids.label}</td>
+        <td>${log.attack_type || log.nids.label}</td>
         <td>${log.severity.label}</td>
         <td class="log-cell">${log.log}</td>
         <td class="${sevClass}" title="${log.severity.model}">${log.severity.label}</td>
