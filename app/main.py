@@ -55,8 +55,11 @@ def run():
     if detector is None:
         detector = Detector()
     db.init_db()
-    # Defensive sanitization in case the interface contains unexpected NULs
+    # Defensive sanitization in case the interface contains unexpected characters
     iface = config.sanitize_ifname(config.NETWORK_INTERFACE)
+    if not iface:
+        print("Interface invalida")
+        return
     logging.info("Monitorando interface %s...", iface)
     try:
         sniffer = AsyncSniffer(
@@ -66,6 +69,9 @@ def run():
         )
         sniffer.start()
         sniffer.join()
+    except ValueError as exc:
+        logging.error("Interface invalida: %s", exc)
+        print(f"Interface invalida: {exc}")
     except Exception as exc:
         logging.error("Falha ao iniciar sniffer: %s", exc)
         print(f"Erro ao iniciar captura: {exc}")
