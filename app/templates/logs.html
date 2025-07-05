@@ -14,6 +14,7 @@
                     <th>Severity</th>
                     <th>Anomaly</th>
                     <th>Category</th>
+                    <th>Outlier</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -35,7 +36,8 @@ function addLogRow(log) {
         <td>${log.log}</td>
         <td class="${sevClass}">${log.severity.label}</td>
         <td>${log.anomaly.label}</td>
-        <td>${log.nids.label}</td>`;
+        <td>${log.nids.label}</td>
+        <td>${log.semantic.outlier ? 'yes' : 'no'}</td>`;
     tbody.prepend(tr);
 }
 

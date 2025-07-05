@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS logs (
     log TEXT NOT NULL,
     severity JSONB,
     anomaly JSONB,
-    nids JSONB
+    nids JSONB,
+    semantic JSONB
 );
 
 CREATE TABLE IF NOT EXISTS blocked_ips (

@@ -66,6 +66,7 @@ def analyze_request() -> dict:
         result['severity'],
         result['anomaly'],
         result['nids'],
+        result['semantic'],
     )
     notify_log({
         'created_at': time.strftime('%Y-%m-%d %H:%M:%S'),
@@ -74,9 +75,11 @@ def analyze_request() -> dict:
         'severity': result['severity'],
         'anomaly': result['anomaly'],
         'nids': result['nids'],
+        'semantic': result['semantic'],
     })
     sev = str(result['severity']['label']).lower()
     anom = str(result['anomaly']['label']).lower()
+    sem_outlier = bool(result.get('semantic', {}).get('outlier'))
     if ip:
         now = time.time()
         dq = REQUEST_COUNTS[ip]
@@ -89,7 +92,7 @@ def analyze_request() -> dict:
                 db.save_blocked_ip(ip, 'dos')
                 return {'blocked': True}
 
-        if sev == 'high' or anom not in ('normal', 'none'):
+        if sev in ('error', 'high') or (anom not in ('normal', 'none') and sem_outlier):
             if firewall.block_ip(ip):
                 reason = f"{result['anomaly']['label']} / {result['severity']['label']}"
                 logger.warning("IP %s blocked: %s", ip, reason)
@@ -125,6 +128,7 @@ def api_logs():
             'severity': log['severity'],
             'anomaly': log['anomaly'],
             'nids': log['nids'],
+            'semantic': log.get('semantic'),
         }
         for log in logs
     ]

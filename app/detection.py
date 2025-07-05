@@ -1,6 +1,8 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from sentence_transformers import SentenceTransformer, util
 import torch
 import logging
+from collections import deque
 
 logger = logging.getLogger(__name__)
 from . import config
@@ -26,10 +28,24 @@ class Detector:
         self.anomaly_model = AutoModelForSequenceClassification.from_pretrained(config.ANOMALY_MODEL).to(self.device)
         self.nids_tokenizer = AutoTokenizer.from_pretrained(config.NIDS_MODEL)
         self.nids_model = AutoModelForSequenceClassification.from_pretrained(config.NIDS_MODEL).to(self.device)
+        self.semantic_model = SentenceTransformer(config.SEMANTIC_MODEL, device=str(self.device))
+        self.recent_embeddings = deque(maxlen=100)
+        self.semantic_threshold = float(getattr(config, 'SEMANTIC_THRESHOLD', 0.5))
         logger.info("Modelos carregados com sucesso")
 
     def analyze(self, text: str):
         logger.debug("Analise de texto")
+        embedding = self.semantic_model.encode(
+            text,
+            convert_to_tensor=True,
+            normalize_embeddings=True,
+        )
+        similarity = 1.0
+        if self.recent_embeddings:
+            sims = util.cos_sim(embedding, torch.stack(list(self.recent_embeddings)))[0]
+            similarity = float(torch.max(sims).item())
+        outlier = similarity < self.semantic_threshold
+        self.recent_embeddings.append(embedding.cpu())
         inputs = self.anomaly_tokenizer(
             text,
             return_tensors="pt",
@@ -77,4 +93,9 @@ class Detector:
             'anomaly': {'label': anomaly_label, 'score': anomaly_score},
             'severity': {'label': severity_label, 'score': severity_score},
             'nids': {'label': nids_label, 'score': nids_score},
+            'semantic': {
+                'embedding': embedding.cpu().tolist(),
+                'similarity': similarity,
+                'outlier': outlier,
+            },
         }

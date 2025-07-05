@@ -14,6 +14,8 @@ SEVERITY_MODEL = os.getenv('SEVERITY_MODEL')
 ANOMALY_MODEL = os.getenv('ANOMALY_MODEL')
 NIDS_MODEL = os.getenv('NIDS_MODEL')
 
+SEMANTIC_THRESHOLD = float(os.getenv('SEMANTIC_THRESHOLD', '0.5'))
+
 DEVICE = os.getenv('DEVICE', 'cpu')
 WEB_PANEL_PORT = int(os.getenv('WEB_PANEL_PORT', '8080'))
 UNIT_PORT = int(os.getenv('UNIT_PORT', '8090'))
