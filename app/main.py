@@ -16,7 +16,7 @@ def start(port: int = None):
         return
     if port is None:
         port = config.UNIT_PORT
-    _server = make_server("0.0.0.0", port, wsgi.app)
+    _server = make_server("0.0.0.0", port, wsgi.app, threaded=True)
     _thread = threading.Thread(target=_server.serve_forever, daemon=True)
     _thread.start()
     logger.info("Proxy iniciado na porta %s", port)
