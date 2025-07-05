@@ -121,6 +121,10 @@ def menu():
         elif choice == '4':
             select_device()
         elif choice == '5':
+            if running:
+                stop_protection()
+            if panel:
+                stop_panel()
             break
 
 if __name__ == '__main__':
