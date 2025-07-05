@@ -20,8 +20,19 @@ SEVERITY_MODEL = os.getenv(
 ANOMALY_MODEL = os.getenv(
     'ANOMALY_MODEL', 'teoogherghi/Log-Analysis-Model-DistilBert'
 )
+# Allow a list of NIDS models to be configured. If ``NIDS_MODELS`` is not
+# provided, fall back to ``NIDS_MODEL`` or a sensible default.
+NIDS_MODELS = [
+    s.strip() for s in os.getenv(
+        'NIDS_MODELS',
+        'caffeinatedcherrychic/mistral-based-NIDS,SilverDragon9/Sniffer.AI',
+    ).split(',') if s.strip()
+]
+
+# Backwards compatibility with the old ``NIDS_MODEL`` variable. The first model
+# in ``NIDS_MODELS`` is treated as the primary one.
 NIDS_MODEL = os.getenv(
-    'NIDS_MODEL', 'Dumi2025/log-anomaly-detection-model-roberta'
+    'NIDS_MODEL', NIDS_MODELS[0] if NIDS_MODELS else 'Dumi2025/log-anomaly-detection-model-roberta'
 )
 
 SEMANTIC_THRESHOLD = float(os.getenv('SEMANTIC_THRESHOLD', '0.5'))

@@ -13,7 +13,7 @@ def download_models() -> None:
     models = [
         (config.SEVERITY_MODEL, True),
         (config.ANOMALY_MODEL, True),
-        (config.NIDS_MODEL, True),
+        *[(model, True) for model in config.NIDS_MODELS],
     ]
     for model_name, is_classifier in models:
         try:

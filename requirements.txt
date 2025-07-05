@@ -6,3 +6,5 @@ flask
 werkzeug
 torch
 requests
+scikit-learn
+xgboost
