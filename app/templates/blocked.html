@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div id="blocked-app" v-cloak>
+<div id="blocked-app">
   <h1 class="display-5 mb-4 text-center">IPs Bloqueados</h1>
   <div class="card">
     <div class="card-body p-0">
@@ -15,20 +15,13 @@
               <th>Data/Hora</th>
             </tr>
           </thead>
-          <tbody>
-            <tr v-for="item in blocked" :key="item.ip + item.blocked_at">
-              <td>{{ item.ip }}</td>
-              <td :class="statusClass(item.status)">{{ item.status }}</td>
-              <td>{{ item.reason or '' }}</td>
-              <td>{{ item.blocked_at }}</td>
-            </tr>
-          </tbody>
+          <tbody id="blocked-body"></tbody>
         </table>
       </div>
       <div class="d-flex justify-content-between align-items-center p-2">
-        <button @click="fetchBlocked(page-1)" :disabled="page === 1" class="btn btn-sm btn-secondary">Anterior</button>
-        <span class="fw-bold">Página {{ page }}</span>
-        <button @click="fetchBlocked(page+1)" class="btn btn-sm btn-secondary">Próxima</button>
+        <button id="blocked-prev" class="btn btn-sm btn-secondary">Anterior</button>
+        <span class="fw-bold">Página <span id="blocked-page">{{ page }}</span></span>
+        <button id="blocked-next" class="btn btn-sm btn-secondary">Próxima</button>
       </div>
     </div>
   </div>
@@ -37,37 +30,51 @@
 
 {% block scripts %}
 <script>
-const BlockedApp = {
-    data() {
-        return { blocked: [], page: {{ page }}, evt: null };
-    },
-    methods: {
-        statusClass(status) {
-            return status === 'blocked' ? 'status-blocked' : 'status-unblocked';
-        },
-        async fetchBlocked(page) {
-            if (page < 1) return;
-            const res = await fetch(`/api/blocked?page=${page}`);
-            this.blocked = await res.json();
-            this.page = page;
-            if (this.evt) this.evt.close();
-            if (page === 1) {
-                this.evt = new EventSource('/stream/blocked');
-                this.evt.onmessage = (e) => {
-                    const item = JSON.parse(e.data);
-                    this.blocked.unshift(item);
-                };
-            }
-        },
-    },
-    mounted() {
-        this.fetchBlocked(this.page);
-    },
-    beforeUnmount() {
-        if (this.evt) this.evt.close();
-    }
-};
+let blockedPage = {{ page }};
+let blockedData = [];
+let blockedEvt = null;
 
-Vue.createApp(BlockedApp).mount('#blocked-app');
+function statusClass(status) {
+    return status === 'blocked' ? 'status-blocked' : 'status-unblocked';
+}
+
+function renderBlocked() {
+    const tbody = document.getElementById('blocked-body');
+    tbody.innerHTML = '';
+    for (const item of blockedData) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.ip}</td>
+            <td class="${statusClass(item.status)}">${item.status}</td>
+            <td>${item.reason || ''}</td>
+            <td>${item.blocked_at}</td>`;
+        tbody.appendChild(tr);
+    }
+    document.getElementById('blocked-page').textContent = blockedPage;
+    document.getElementById('blocked-prev').disabled = blockedPage === 1;
+}
+
+async function fetchBlocked(page) {
+    if (page < 1) return;
+    const res = await fetch(`/api/blocked?page=${page}`);
+    blockedData = await res.json();
+    blockedPage = page;
+    renderBlocked();
+    if (blockedEvt) blockedEvt.close();
+    if (page === 1) {
+        blockedEvt = new EventSource('/stream/blocked');
+        blockedEvt.onmessage = (e) => {
+            const item = JSON.parse(e.data);
+            blockedData.unshift(item);
+            renderBlocked();
+        };
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('blocked-prev').addEventListener('click', () => fetchBlocked(blockedPage - 1));
+    document.getElementById('blocked-next').addEventListener('click', () => fetchBlocked(blockedPage + 1));
+    fetchBlocked(blockedPage);
+});
 </script>
 {% endblock %}
