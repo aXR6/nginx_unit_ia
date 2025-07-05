@@ -19,7 +19,7 @@
             <tr v-for="item in blocked" :key="item.ip + item.blocked_at">
               <td>{{ item.ip }}</td>
               <td :class="statusClass(item.status)">{{ item.status }}</td>
-              <td>{{ item.reason || '' }}</td>
+              <td>{{ item.reason or '' }}</td>
               <td>{{ item.blocked_at }}</td>
             </tr>
           </tbody>
