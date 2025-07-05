@@ -7,7 +7,7 @@ Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit]
 - `Dockerfile` constroi a imagem para a aplicação, baixando os modelos necessários.
 - `app/` contém o código Python responsável pela detecção.
 - `schema.sql` contém a estrutura do banco de dados.
-- `.env.example` é um modelo de configuração (copie para `.env`). Inclui `UNIT_PORT` para a porta do proxy de segurança e `BACKEND_URL` apontando para o serviço Nginx Unit.
+- `.env.example` é um modelo de configuração (copie para `.env`). Inclui `UNIT_PORT` para a porta do proxy de segurança, `BACKEND_URL` apontando para o serviço Nginx Unit e `LOG_FILE` definindo onde salvar os registros.
 - Caso o modelo de detecção de anomalias retorne rótulos genéricos (`LABEL_0`, `LABEL_1`), o código mapeia automaticamente esses valores para `normal` e `anomaly`.
 
 ## Uso rápido
@@ -23,6 +23,7 @@ Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit]
 A aplicação realiza análise semântica e detecção de anomalias nos logs. Caso variáveis de banco estejam configuradas, os resultados são armazenados no PostgreSQL informado.\
 Um painel web dinâmico (iniciado opcionalmente pelo menu) fica disponível em `http://localhost:8080/logs` para visualizar os logs registrados. O painel utiliza **Bootstrap** para uma interface mais limpa e permite alternar entre os modos claro e escuro.
 Os registros de novos acessos são transmitidos em tempo real via Server-Sent Events, mantendo a página atualizada sem recarregamentos.
+Todos os eventos e erros também são gravados em arquivo definido pela variável `LOG_FILE`, facilitando a análise posterior.
 
 ## Firewall e bloqueio de IPs
 
