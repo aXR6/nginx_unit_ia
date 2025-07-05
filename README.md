@@ -1,23 +1,20 @@
 # Nginx Unit IA
 
-Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit](https://unit.nginx.org/) utilizando modelos de linguagem do HuggingFace. Somente o Nginx Unit roda em container; os mecanismos de detecção, categorização e classificação devem ser executados fora do container.
+Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit](https://unit.nginx.org/) utilizando modelos de linguagem do HuggingFace. Todo o tráfego que chega ao Nginx Unit passa antes por um proxy em Python que classifica as requisições e registra as detecções.
 
 ## Estrutura
-- `docker-compose.yml` define o serviço do proxy Nginx Unit e uma aplicação de teste "Hello World". A aplicação principal de detecção continua executando fora dos containers.
+- `docker-compose.yml` define o serviço do proxy Nginx Unit e uma aplicação de teste "Hello World". O proxy de segurança executa fora dos containers.
 - `Dockerfile` constroi a imagem para a aplicação, baixando os modelos necessários.
 - `app/` contém o código Python responsável pela detecção.
 - `schema.sql` contém a estrutura do banco de dados.
-- `.env.example` é um modelo de configuração (copie para `.env`). Inclui a variável `DEVICE` que define o dispositivo padrão (CPU ou GPU) e `UNIT_PORT` para alterar a porta do proxy Nginx Unit.
+- `.env.example` é um modelo de configuração (copie para `.env`). Inclui `UNIT_PORT` para a porta do proxy de segurança e `BACKEND_URL` apontando para o serviço Nginx Unit.
 - Caso o modelo de detecção de anomalias retorne rótulos genéricos (`LABEL_0`, `LABEL_1`), o código mapeia automaticamente esses valores para `normal` e `anomaly`.
 
 ## Uso rápido
 1. Copie `.env.example` para `.env` e ajuste as variáveis.
 2. Execute `docker-compose up -d` para subir o Nginx Unit e a aplicação de teste.
-3. Em seguida, rode `python -m app.menu` fora dos containers para iniciar a proteção
-   e o painel web. No menu é possível selecionar a interface de rede e o dispositivo
-   de inferência.
-   Ao escolher `5. Sair`, quaisquer serviços iniciados pelas opções anteriores são
-   finalizados automaticamente.
+3. Rode `python -m app.menu` para iniciar o proxy de segurança e, opcionalmente, o painel web.
+   O menu permite ativar ou desativar o proxy, iniciar o painel e escolher CPU ou GPU para inferência.
 
 A aplicação realiza análise semântica e detecção de anomalias nos logs. Caso variáveis de banco estejam configuradas, os resultados são armazenados no PostgreSQL informado.\
 Um painel web dinâmico (iniciado opcionalmente pelo menu) fica disponível em `http://localhost:8080/logs` para visualizar os logs registrados. O painel utiliza **Bootstrap** para uma interface mais limpa e permite alternar entre os modos claro e escuro.

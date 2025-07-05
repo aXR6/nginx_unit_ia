@@ -1,97 +1,35 @@
-import logging
-import socket
-from scapy.all import AsyncSniffer
-from scapy.layers.inet import IP
-from . import config, db
-from . import firewall
-from .detection import Detector
+import threading
+from werkzeug.serving import make_server
+import threading
+from . import config, wsgi
 
-# Global detector instance, lazily initialized in `run()`
-logging.basicConfig(
-    filename="app.log",
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(message)s",
-)
-
-detector = None
-sniffer = None
+_server = None
+_thread = None
 
 
-def packet_callback(packet):
-    if packet.haslayer("Raw"):
-        payload = bytes(packet["Raw"].load).decode("latin-1", errors="ignore")
-        result = detector.analyze(payload)
-        db.save_log(
-            config.NETWORK_INTERFACE,
-            payload,
-            result["severity"],
-            result["anomaly"],
-            result["nids"],
-        )
-        logging.info(
-            "Anomaly: %s Severity: %s NIDS: %s",
-            result["anomaly"]["label"],
-            result["severity"]["label"],
-            result["nids"]["label"],
-        )
-
-        src_ip = None
-        if packet.haslayer(IP):
-            src_ip = packet[IP].src
-
-        if src_ip:
-            # simple heuristic: block if severity is high or anomaly not normal
-            sev_label = str(result["severity"]["label"]).lower()
-            anomaly_label = str(result["anomaly"]["label"]).lower()
-            if sev_label == "high" or anomaly_label not in ("normal", "none"):
-                if firewall.block_ip(src_ip):
-                    reason = (
-                        f"{result['anomaly']['label']} / {result['severity']['label']}"
-                    )
-                    db.save_blocked_ip(src_ip, reason)
-
-
-def run():
-    global detector, sniffer
-    if detector is None:
-        detector = Detector()
-    db.init_db()
-    # Defensive sanitization in case the interface contains unexpected characters
-    iface = config.sanitize_ifname(config.NETWORK_INTERFACE)
-    if not iface or "\x00" in iface:
-        print("Interface invalida")
-        logging.error("Interface continha caracteres invalidos")
+def start(port: int = None):
+    global _server, _thread
+    if _server is not None:
         return
-
-    try:
-        socket.if_nametoindex(iface)
-    except OSError:
-        print(f"Interface invalida: {iface}")
-        logging.error("Interface invalida: %s", iface)
-        return
-    logging.info("Monitorando interface %s...", repr(iface))
-    try:
-        sniffer = AsyncSniffer(
-            iface=iface,
-            prn=packet_callback,
-            store=False,
-        )
-        sniffer.start()
-        sniffer.join()
-    except ValueError as exc:
-        logging.error("Interface invalida: %s", exc)
-        print(f"Interface invalida: {exc}")
-    except Exception as exc:
-        logging.error("Falha ao iniciar sniffer: %s", exc)
-        print(f"Erro ao iniciar captura: {exc}")
+    if port is None:
+        port = config.UNIT_PORT
+    _server = make_server("0.0.0.0", port, wsgi.app)
+    _thread = threading.Thread(target=_server.serve_forever, daemon=True)
+    _thread.start()
 
 
 def stop():
-    global sniffer
-    if sniffer and sniffer.running:
-        sniffer.stop()
-        sniffer = None
+    global _server, _thread
+    if _server is not None:
+        _server.shutdown()
+        _thread.join()
+        _server = None
+        _thread = None
 
 
 if __name__ == "__main__":
-    run()
+    start()
+    try:
+        _thread.join()
+    except KeyboardInterrupt:
+        stop()
