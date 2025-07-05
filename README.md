@@ -25,6 +25,11 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
    ```bash
    pip install -r requirements.txt
    ```
+4. Alguns modelos do Hugging Face sao **restritos** (gated) e exigem autenticacao.
+   Aceite os termos do modelo no site e faca login localmente com:
+   ```bash
+   huggingface-cli login --token SEU_TOKEN
+   ```
 3. (Opcional) Suba o contêiner do Nginx Unit e da aplicação de exemplo:
    ```bash
    docker-compose up -d
