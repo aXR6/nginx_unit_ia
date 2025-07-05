@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS logs (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     iface TEXT NOT NULL,
     log TEXT NOT NULL,
+    ip TEXT,
+    ip_info JSONB,
     severity JSONB,
     anomaly JSONB,
     nids JSONB,

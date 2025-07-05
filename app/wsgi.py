@@ -42,6 +42,10 @@ def analyze_request() -> dict:
     full_text = f"{request.method} {request.full_path}\n{payload}"
     ip = request.remote_addr
     logger.info("Analyzing request from %s", ip or "unknown")
+    ip_info = None
+    if ip:
+        from .ipinfo import fetch_ip_info
+        ip_info = fetch_ip_info(ip)
     result = detector.analyze(full_text)
     logger.info(
         "Detection result - severity: %s, anomaly: %s, nids: %s",
@@ -56,11 +60,15 @@ def analyze_request() -> dict:
         result['anomaly'],
         result['nids'],
         result['semantic'],
+        ip=ip,
+        ip_info=ip_info,
     )
     events.notify_log({
         'created_at': time.strftime('%Y-%m-%d %H:%M:%S'),
         'iface': 'unit',
         'log': full_text,
+        'ip': ip,
+        'ip_info': ip_info,
         'severity': result['severity'],
         'anomaly': result['anomaly'],
         'nids': result['nids'],
@@ -135,6 +143,8 @@ def api_logs():
             'created_at': str(log['created_at']),
             'iface': log['iface'],
             'log': log['log'],
+            'ip': log.get('ip'),
+            'ip_info': log.get('ip_info'),
             'severity': log['severity'],
             'anomaly': log['anomaly'],
             'nids': log['nids'],

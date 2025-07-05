@@ -10,6 +10,7 @@
                 <tr>
                     <th>Timestamp</th>
                     <th>Interface</th>
+                    <th>IP</th>
                     <th>Log</th>
                     <th>Severity</th>
                     <th>Anomaly</th>
@@ -47,9 +48,11 @@ function addLogRow(log) {
     const sevClass = log.severity.label ? 'severity-' + log.severity.label.toLowerCase() : '';
     const catStyle = `background-color:${categoryColor(log.nids.label)}`;
     const models = `S:${log.severity.model} A:${log.anomaly.model} N:${log.nids.model}`;
+    const ipInfo = log.ip_info ? `${log.ip_info.city || ''}, ${log.ip_info.country || ''}` : '';
     tr.innerHTML = `
         <td>${log.created_at}</td>
         <td>${log.iface}</td>
+        <td title="${ipInfo}">${log.ip || ''}</td>
         <td>${log.log}</td>
         <td class="${sevClass}" title="${log.severity.model}">${log.severity.label}</td>
         <td title="${log.anomaly.model}">${log.anomaly.label}</td>
