@@ -21,6 +21,12 @@ app = Flask(__name__)
 
 db.init_db()
 
+
+@app.before_first_request
+def _sync_initial_blocked():
+    """Ensure database reflects current UFW state on startup."""
+    firewall.sync_blocked_ips_with_ufw()
+
 # Streaming listeners and DoS tracking
 REQUEST_COUNTS = defaultdict(deque)
 REQUEST_WINDOW = 10  # seconds

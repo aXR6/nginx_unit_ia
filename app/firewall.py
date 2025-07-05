@@ -89,7 +89,7 @@ def get_ufw_blocked_ips() -> set:
 
 
 def sync_blocked_ips_with_ufw() -> set:
-    """Synchronize blocked IPs in the database with current UFW rules."""
+    """Synchronize database entries with actual UFW rules."""
     ufw_ips = get_ufw_blocked_ips()
     if db.conn is None:
         return ufw_ips
@@ -109,11 +109,11 @@ def sync_blocked_ips_with_ufw() -> set:
         })
         logger.info("Recorded blocked IP from UFW: %s", ip)
 
-    # mark IPs no longer blocked
+    # remove IPs no longer blocked
     for ip in current_blocked - ufw_ips:
         with db.conn.cursor() as cur:
             cur.execute(
-                "UPDATE blocked_ips SET status='unblocked' WHERE ip=%s AND status='blocked'",
+                "DELETE FROM blocked_ips WHERE ip=%s AND status='blocked'",
                 (ip,),
             )
         events.notify_blocked({
@@ -122,6 +122,6 @@ def sync_blocked_ips_with_ufw() -> set:
             'status': 'unblocked',
             'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
         })
-        logger.info("Marked IP as unblocked: %s", ip)
+        logger.info("Removed IP from blocked list: %s", ip)
 
     return ufw_ips
