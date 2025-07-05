@@ -9,10 +9,20 @@ POSTGRES_DB = os.getenv('POSTGRES_DB')
 POSTGRES_HOST = os.getenv('POSTGRES_HOST')
 POSTGRES_PORT = int(os.getenv('POSTGRES_PORT', 5432))
 
-SEMANTIC_MODEL = os.getenv('SEMANTIC_MODEL')
-SEVERITY_MODEL = os.getenv('SEVERITY_MODEL')
-ANOMALY_MODEL = os.getenv('ANOMALY_MODEL')
-NIDS_MODEL = os.getenv('NIDS_MODEL')
+# Provide sensible defaults for the HuggingFace model identifiers so the
+# application can run even if environment variables are missing.
+SEMANTIC_MODEL = os.getenv(
+    'SEMANTIC_MODEL', 'sentence-transformers/all-MiniLM-L6-v2'
+)
+SEVERITY_MODEL = os.getenv(
+    'SEVERITY_MODEL', 'byviz/bylastic_classification_logs'
+)
+ANOMALY_MODEL = os.getenv(
+    'ANOMALY_MODEL', 'teoogherghi/Log-Analysis-Model-DistilBert'
+)
+NIDS_MODEL = os.getenv(
+    'NIDS_MODEL', 'Dumi2025/log-anomaly-detection-model-roberta'
+)
 
 SEMANTIC_THRESHOLD = float(os.getenv('SEMANTIC_THRESHOLD', '0.5'))
 BLOCK_SEVERITY_LEVELS = [s.strip().lower() for s in os.getenv('BLOCK_SEVERITY_LEVELS', 'error,high').split(',')]
