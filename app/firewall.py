@@ -5,7 +5,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
-from . import db, events
+from . import db, events, config
 
 
 def is_whitelisted(ip: str) -> bool:
@@ -36,7 +36,19 @@ def block_ip(ip: str) -> bool:
         return False
     try:
         subprocess.run(
-            ["sudo", "ufw", "insert", "1", "deny", "from", ip],
+            [
+                "sudo",
+                "ufw",
+                "insert",
+                "1",
+                "deny",
+                "from",
+                ip,
+                "to",
+                "any",
+                "port",
+                str(config.UNIT_BACKEND_PORT),
+            ],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
