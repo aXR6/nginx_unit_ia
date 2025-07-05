@@ -5,12 +5,12 @@ load_dotenv()
 
 
 def sanitize_ifname(iface: str) -> str:
-    """Return interface name without NULs or surrounding whitespace."""
+    """Return interface name without NUL bytes or surrounding whitespace."""
     if not isinstance(iface, str):
         iface = str(iface)
-    # remove any NUL characters and surrounding whitespace
-    iface = iface.replace("\x00", "").strip()
-    return iface
+    # split at first NUL in case the string contains embedded characters
+    iface = iface.split("\x00", 1)[0]
+    return iface.strip()
 
 POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
