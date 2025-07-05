@@ -50,14 +50,15 @@ Defina `POSTGRES_HOST` e as demais variáveis de conexão para ativar o uso de P
 
 ## Pentest e testes
 
-A pasta `pentest` inclui scripts de verificação:
+A pasta `pentest` inclui scripts de verificação e testes de ataque:
 
 ```bash
 python pentest/test_structure.py   # valida a estrutura do projeto
 python pentest/test_security.py    # envia uma requisição suspeita e consulta os logs
+python pentest/test_attacks.py     # executa vários vetores de ataque contra o proxy
 ```
 
-Execute o segundo teste com o proxy e o painel ativos.
+Execute os testes de segurança com o proxy e o painel ativos.
 
 A detecção de ameaças também integra-se ao firewall **UFW**. Sempre que um ataque ou invasão é identificado, o IP de origem é automaticamente bloqueado via UFW e registrado no banco de dados.
 O painel web possui a página `http://localhost:8080/blocked` que exibe todos os IPs bloqueados, seu status, motivo e data/hora do bloqueio.
