@@ -1,4 +1,5 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from peft import PeftModel
 from sentence_transformers import SentenceTransformer, util
 import torch
 import logging
@@ -44,8 +45,18 @@ class Detector:
         # for compatibility with previous versions of the application.
         self.nids_models = []
         for model_name in config.NIDS_MODELS:
-            tok = AutoTokenizer.from_pretrained(model_name)
-            mdl = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
+            try:
+                tok = AutoTokenizer.from_pretrained(model_name)
+                mdl = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
+            except OSError:
+                logger.info(
+                    "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
+                    model_name,
+                    config.NIDS_BASE_MODEL,
+                )
+                tok = AutoTokenizer.from_pretrained(config.NIDS_BASE_MODEL)
+                base = AutoModelForSequenceClassification.from_pretrained(config.NIDS_BASE_MODEL)
+                mdl = PeftModel.from_pretrained(base, model_name).to(self.device)
             self.nids_models.append((model_name, tok, mdl))
         self.semantic_model = SentenceTransformer(config.SEMANTIC_MODEL, device=str(self.device))
         self.recent_embeddings = deque(maxlen=100)
