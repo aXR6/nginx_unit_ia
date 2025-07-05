@@ -18,9 +18,11 @@ Este projeto cria uma camada de proteção inteligente para o proxy [Nginx Unit]
 
 A aplicação realiza análise semântica e detecção de anomalias nos logs. Caso variáveis de banco estejam configuradas, os resultados são armazenados no PostgreSQL informado.\
 Um painel web dinâmico (iniciado opcionalmente pelo menu) fica disponível em `http://localhost:8080/logs` para visualizar os logs registrados. O painel utiliza **Bootstrap** para uma interface mais limpa e permite alternar entre os modos claro e escuro.
+Os registros de novos acessos são transmitidos em tempo real via Server-Sent Events, mantendo a página atualizada sem recarregamentos.
 
 ## Firewall e bloqueio de IPs
 
 A detecção de ameaças também integra-se ao firewall **UFW**. Sempre que um ataque ou invasão é identificado, o IP de origem é automaticamente bloqueado via UFW e registrado no banco de dados.
 O painel web possui a página `http://localhost:8080/blocked` que exibe todos os IPs bloqueados, seu status, motivo e data/hora do bloqueio.
 Sempre que essa página é acessada, a lista é sincronizada com as regras atuais do UFW, garantindo que o banco reflita o estado real do firewall.
+O proxy também monitora a quantidade de requisições de cada IP e bloqueia automaticamente padrões que indiquem ataques de negação de serviço.

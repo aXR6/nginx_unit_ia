@@ -25,25 +25,32 @@
 
 {% block scripts %}
 <script>
-async function fetchLogs() {
+function addLogRow(log) {
+    const tbody = document.querySelector('#logs-table tbody');
+    const tr = document.createElement('tr');
+    const sevClass = log.severity.label ? 'severity-' + log.severity.label.toLowerCase() : '';
+    tr.innerHTML = `
+        <td>${log.created_at}</td>
+        <td>${log.iface}</td>
+        <td>${log.log}</td>
+        <td class="${sevClass}">${log.severity.label}</td>
+        <td>${log.anomaly.label}</td>
+        <td>${log.nids.label}</td>`;
+    tbody.prepend(tr);
+}
+
+async function initLogs() {
     const res = await fetch('/api/logs');
     const data = await res.json();
-    const tbody = document.querySelector('#logs-table tbody');
-    tbody.innerHTML = '';
-    data.forEach(log => {
-        const tr = document.createElement('tr');
-        const sevClass = log.severity.label ? 'severity-' + log.severity.label.toLowerCase() : '';
-        tr.innerHTML = `
-            <td>${log.created_at}</td>
-            <td>${log.iface}</td>
-            <td>${log.log}</td>
-            <td class="${sevClass}">${log.severity.label}</td>
-            <td>${log.anomaly.label}</td>
-            <td>${log.nids.label}</td>`;
-        tbody.appendChild(tr);
-    });
+    data.reverse().forEach(addLogRow);
+
+    const evt = new EventSource('/stream/logs');
+    evt.onmessage = (e) => {
+        const log = JSON.parse(e.data);
+        addLogRow(log);
+    };
 }
-fetchLogs();
-setInterval(fetchLogs, 5000);
+
+initLogs();
 </script>
 {% endblock %}
