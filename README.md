@@ -48,6 +48,13 @@ O proxy escutará na porta configurada em `UNIT_PORT` e encaminhará as requisi�
 
 Quando uma requisição é classificada como perigosa ou excede o limiar de negação de serviço, o IP de origem é bloqueado no UFW **apenas para a porta configurada em `UNIT_BACKEND_PORT`** e gravado no banco (se configurado). Os dados também ficam salvos em arquivo no caminho definido por `LOG_FILE`.
 
+### Configurações de bloqueio
+
+Os limiares usados para bloquear IPs podem ser ajustados por variáveis de ambiente:
+
+- `BLOCK_SEVERITY_LEVELS` &ndash; níveis de severidade que resultam em bloqueio imediato (padrão `error,high`).
+- `BLOCK_ANOMALY_THRESHOLD` &ndash; probabilidade mínima de anomalia para bloquear quando o evento também é considerado *outlier* semântico (padrão `0.5`).
+
 ## Banco de dados
 
 Defina `POSTGRES_HOST` e as demais variáveis de conexão para ativar o uso de PostgreSQL. Caso contrário, o proxy funciona sem dependência de banco, apenas registrando em arquivo.

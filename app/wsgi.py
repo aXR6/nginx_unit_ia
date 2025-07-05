@@ -104,6 +104,7 @@ def analyze_request() -> dict:
     })
     sev = str(result['severity']['label']).lower()
     anom = str(result['anomaly']['label']).lower()
+    anom_score = max(result['anomaly']['score']) if result['anomaly']['score'] else 0.0
     sem_outlier = bool(result.get('semantic', {}).get('outlier'))
     if ip:
         now = time.time()
@@ -123,7 +124,13 @@ def analyze_request() -> dict:
                 })
                 return {'blocked': True}
 
-        if sev in ('error', 'high') or (anom not in ('normal', 'none') and sem_outlier):
+        block_by_sev = sev in config.BLOCK_SEVERITY_LEVELS
+        block_by_anom = (
+            anom not in ('normal', 'none')
+            and sem_outlier
+            and anom_score >= config.BLOCK_ANOMALY_THRESHOLD
+        )
+        if block_by_sev or block_by_anom:
             if firewall.block_ip(ip):
                 reason = f"{result['anomaly']['label']} / {result['severity']['label']}"
                 logger.warning("IP %s blocked: %s", ip, reason)
