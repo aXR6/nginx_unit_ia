@@ -1,12 +1,13 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
+import logging
 from . import config
 
 class Detector:
     def __init__(self):
         device = config.DEVICE
         if device == "cuda" and not torch.cuda.is_available():
-            print("CUDA n\u00e3o dispon\u00edvel, usando CPU")
+            logging.warning("CUDA n\u00e3o dispon\u00e9vel, usando CPU")
             device = "cpu"
         self.device = torch.device(device)
 
