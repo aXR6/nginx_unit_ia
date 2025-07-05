@@ -39,8 +39,14 @@ class Detector:
         self.severity_model = AutoModelForSequenceClassification.from_pretrained(config.SEVERITY_MODEL).to(self.device)
         self.anomaly_tokenizer = AutoTokenizer.from_pretrained(config.ANOMALY_MODEL)
         self.anomaly_model = AutoModelForSequenceClassification.from_pretrained(config.ANOMALY_MODEL).to(self.device)
-        self.nids_tokenizer = AutoTokenizer.from_pretrained(config.NIDS_MODEL)
-        self.nids_model = AutoModelForSequenceClassification.from_pretrained(config.NIDS_MODEL).to(self.device)
+        # Load one or more NIDS models. ``config.NIDS_MODELS`` contains the list
+        # of model identifiers. The first one is considered the primary model
+        # for compatibility with previous versions of the application.
+        self.nids_models = []
+        for model_name in config.NIDS_MODELS:
+            tok = AutoTokenizer.from_pretrained(model_name)
+            mdl = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
+            self.nids_models.append((model_name, tok, mdl))
         self.semantic_model = SentenceTransformer(config.SEMANTIC_MODEL, device=str(self.device))
         self.recent_embeddings = deque(maxlen=100)
         self.semantic_threshold = float(getattr(config, 'SEMANTIC_THRESHOLD', 0.5))
@@ -89,18 +95,27 @@ class Detector:
         severity_label_idx = int(torch.argmax(sev_probs).item())
         severity_label = self.severity_model.config.id2label.get(severity_label_idx, str(severity_label_idx))
 
-        nids_inputs = self.nids_tokenizer(
-            text,
-            return_tensors="pt",
-            truncation=True,
-            max_length=self.nids_tokenizer.model_max_length,
-        )
-        nids_inputs = {k: v.to(self.device) for k, v in nids_inputs.items()}
-        nids_output = self.nids_model(**nids_inputs)
-        nids_probs = torch.softmax(nids_output.logits, dim=-1)[0]
-        nids_score = nids_probs.tolist()
-        nids_label_idx = int(torch.argmax(nids_probs).item())
-        nids_label = self.nids_model.config.id2label.get(nids_label_idx, str(nids_label_idx))
+        nids_details = []
+        for model_name, tok, mdl in self.nids_models:
+            inputs = tok(
+                text,
+                return_tensors="pt",
+                truncation=True,
+                max_length=tok.model_max_length,
+            )
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            output = mdl(**inputs)
+            probs = torch.softmax(output.logits, dim=-1)[0]
+            score = probs.tolist()
+            label_idx = int(torch.argmax(probs).item())
+            label = mdl.config.id2label.get(label_idx, str(label_idx))
+            nids_details.append({'label': label, 'score': score, 'model': model_name})
+
+        # Determine final label by majority vote among models
+        from collections import Counter
+        label_counts = Counter(d['label'] for d in nids_details)
+        final_label = label_counts.most_common(1)[0][0]
+        final_detail = next(d for d in nids_details if d['label'] == final_label)
         intensity = calculate_intensity(severity_label, anomaly_score, similarity)
 
         return {
@@ -115,9 +130,10 @@ class Detector:
                 'model': config.SEVERITY_MODEL,
             },
             'nids': {
-                'label': nids_label,
-                'score': nids_score,
-                'model': config.NIDS_MODEL,
+                'label': final_label,
+                'score': final_detail['score'],
+                'model': ', '.join(config.NIDS_MODELS),
+                'details': nids_details,
             },
             'semantic': {
                 'embedding': embedding.cpu().tolist(),

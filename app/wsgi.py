@@ -163,7 +163,7 @@ def logs():
     models = {
         'severity': config.SEVERITY_MODEL,
         'anomaly': config.ANOMALY_MODEL,
-        'nids': config.NIDS_MODEL,
+        'nids': ', '.join(config.NIDS_MODELS),
         'semantic': config.SEMANTIC_MODEL,
     }
     return render_template('logs.html', title='Logs', logs=logs, page=page, models=models)
@@ -191,7 +191,7 @@ def blocked():
     models = {
         'severity': config.SEVERITY_MODEL,
         'anomaly': config.ANOMALY_MODEL,
-        'nids': config.NIDS_MODEL,
+        'nids': ', '.join(config.NIDS_MODELS),
         'semantic': config.SEMANTIC_MODEL,
     }
     return render_template('blocked.html', title='IPs Bloqueados', blocked=blocked, page=page, models=models)
