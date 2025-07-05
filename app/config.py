@@ -8,8 +8,8 @@ def sanitize_ifname(iface: str) -> str:
     """Return interface name without NULs or surrounding whitespace."""
     if not isinstance(iface, str):
         iface = str(iface)
-    # keep only portion before first NUL and strip spaces
-    iface = iface.split("\x00", 1)[0].strip()
+    # remove any NUL characters and surrounding whitespace
+    iface = iface.replace("\x00", "").strip()
     return iface
 
 POSTGRES_USER = os.getenv('POSTGRES_USER')
