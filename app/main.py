@@ -1,6 +1,5 @@
 import threading
 from werkzeug.serving import make_server
-import threading
 import logging
 from . import config, wsgi
 
