@@ -10,10 +10,13 @@ def sanitize_ifname(iface: str) -> str:
     if not isinstance(iface, str):
         iface = str(iface)
 
-    # split at first NUL in case the string contains embedded characters
-    iface = iface.split("\x00", 1)[0]
+    # remove everything after the first NUL byte if present
+    iface = iface.partition("\x00")[0]
 
-    # remove newlines and control characters
+    # remove any remaining NUL bytes just in case
+    iface = iface.replace("\x00", "")
+
+    # remove newlines and other common control characters
     iface = re.sub(r"[\r\n\t\f\v]", "", iface)
 
     # keep only common iface characters (alnum, dash, underscore, colon, dot)
