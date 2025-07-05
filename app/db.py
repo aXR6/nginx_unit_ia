@@ -27,16 +27,23 @@ def init_db():
             cur.execute(f.read())
 
 
-def save_log(interface, data, severity, anomaly, nids):
+def save_log(interface, data, severity, anomaly, nids, semantic=None):
     if conn is None:
         return
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
-            INSERT INTO logs (iface, log, severity, anomaly, nids)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO logs (iface, log, severity, anomaly, nids, semantic)
+            VALUES (%s, %s, %s, %s, %s, %s)
             """,
-            (interface, data, Json(severity), Json(anomaly), Json(nids)),
+            (
+                interface,
+                data,
+                Json(severity),
+                Json(anomaly),
+                Json(nids),
+                Json(semantic) if semantic is not None else None,
+            ),
         )
 
 
