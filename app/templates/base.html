@@ -1,9 +1,13 @@
 <!doctype html>
-<html lang="pt-br" data-bs-theme="light">
+<html lang="pt-br">
 <head>
     <meta charset="utf-8">
     <title>{{ title or "Nginx Unit IA" }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/lux/bootstrap.min.css" rel="stylesheet">
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    </script>
     <style>
         body { padding-top: 56px; }
         .severity-high { color: #dc3545; font-weight: bold; }
@@ -22,8 +26,8 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="/logs">Logs</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/blocked">IPs Bloqueados</a></li>
+                    <li class="nav-item"><a class="nav-link fw-bold text-white" style="font-size:1.1rem" href="/logs">Logs</a></li>
+                    <li class="nav-item"><a class="nav-link fw-bold text-white" style="font-size:1.1rem" href="/blocked">IPs Bloqueados</a></li>
                 </ul>
                 <button id="toggle-btn" class="btn btn-outline-light">Alternar tema</button>
             </div>
@@ -37,9 +41,13 @@
 function toggleTheme(){
     const html=document.documentElement;
     const theme=html.getAttribute('data-bs-theme');
-    html.setAttribute('data-bs-theme', theme==='dark'?'light':'dark');
+    const newTheme = theme==='dark'?'light':'dark';
+    html.setAttribute('data-bs-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
 }
-document.getElementById('toggle-btn').addEventListener('click', toggleTheme);
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('toggle-btn').addEventListener('click', toggleTheme);
+});
 </script>
 {% block scripts %}{% endblock %}
 </body>
