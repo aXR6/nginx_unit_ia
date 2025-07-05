@@ -83,7 +83,11 @@ def analyze_request() -> dict:
     created_at = time.strftime('%Y-%m-%d %H:%M:%S')
     log_id = None
     if saved:
-        log_id, created_at = saved
+        log_id, created_at_dt = saved
+        if hasattr(created_at_dt, "strftime"):
+            created_at = created_at_dt.strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            created_at = str(created_at_dt)
     events.notify_log({
         'id': log_id,
         'created_at': created_at,
