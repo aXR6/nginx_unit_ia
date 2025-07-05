@@ -1,4 +1,5 @@
 import logging
+import socket
 from scapy.all import AsyncSniffer
 from scapy.layers.inet import IP
 from . import config, db
@@ -59,6 +60,13 @@ def run():
     iface = config.sanitize_ifname(config.NETWORK_INTERFACE)
     if not iface:
         print("Interface invalida")
+        return
+
+    try:
+        socket.if_nametoindex(iface)
+    except OSError:
+        print(f"Interface invalida: {iface}")
+        logging.error("Interface invalida: %s", iface)
         return
     logging.info("Monitorando interface %s...", iface)
     try:
