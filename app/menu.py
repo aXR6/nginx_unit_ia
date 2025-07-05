@@ -1,7 +1,10 @@
 import threading
 from werkzeug.serving import make_server
 import torch
+import logging
 from . import config, main, wsgi
+
+logger = logging.getLogger(__name__)
 
 _proxy_thread = None
 _panel_server = None
@@ -13,6 +16,7 @@ def start_proxy():
     if _proxy_thread is None or not _proxy_thread.is_alive():
         _proxy_thread = threading.Thread(target=main.start, daemon=True)
         _proxy_thread.start()
+        logger.info("Proxy de seguran\u00e7a ativado")
         print("Proxy de seguran\u00e7a ativado.")
     else:
         print("Proxy j\u00e1 em execu\u00e7\u00e3o.")
@@ -24,6 +28,7 @@ def stop_proxy():
         main.stop()
         _proxy_thread.join()
         _proxy_thread = None
+        logger.info("Proxy parado")
         print("Proxy parado.")
     else:
         print("Proxy n\u00e3o estava ativo.")
@@ -35,6 +40,7 @@ def start_panel():
         _panel_server = make_server("0.0.0.0", config.WEB_PANEL_PORT, wsgi.app)
         _panel_thread = threading.Thread(target=_panel_server.serve_forever, daemon=True)
         _panel_thread.start()
+        logger.info("Painel web iniciado na porta %s", config.WEB_PANEL_PORT)
         print(f"Painel web em http://localhost:{config.WEB_PANEL_PORT}/logs")
     else:
         print("Painel web j\u00e1 em execu\u00e7\u00e3o.")
@@ -47,6 +53,7 @@ def stop_panel():
         _panel_thread.join()
         _panel_server = None
         _panel_thread = None
+        logger.info("Painel web parado")
         print("Painel parado.")
     else:
         print("Painel n\u00e3o estava ativo.")

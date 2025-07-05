@@ -1,6 +1,8 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import logging
+
+logger = logging.getLogger(__name__)
 from . import config
 
 # Default label mapping for anomaly model if config lacks id2label
@@ -13,8 +15,9 @@ class Detector:
     def __init__(self):
         device = config.DEVICE
         if device == "cuda" and not torch.cuda.is_available():
-            logging.warning("CUDA n\u00e3o dispon\u00e9vel, usando CPU")
+            logger.warning("CUDA não disponível, usando CPU")
             device = "cpu"
+        logger.info("Carregando modelos em %s", device)
         self.device = torch.device(device)
 
         self.severity_tokenizer = AutoTokenizer.from_pretrained(config.SEVERITY_MODEL)
@@ -23,8 +26,10 @@ class Detector:
         self.anomaly_model = AutoModelForSequenceClassification.from_pretrained(config.ANOMALY_MODEL).to(self.device)
         self.nids_tokenizer = AutoTokenizer.from_pretrained(config.NIDS_MODEL)
         self.nids_model = AutoModelForSequenceClassification.from_pretrained(config.NIDS_MODEL).to(self.device)
+        logger.info("Modelos carregados com sucesso")
 
     def analyze(self, text: str):
+        logger.debug("Analise de texto")
         inputs = self.anomaly_tokenizer(
             text,
             return_tensors="pt",

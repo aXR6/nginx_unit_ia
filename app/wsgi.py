@@ -4,6 +4,12 @@ import json
 import time
 import queue
 from collections import defaultdict, deque
+import logging
+
+from .logging_setup import configure_logging
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 from . import db, firewall, config
 from .detection import Detector
@@ -45,7 +51,15 @@ def analyze_request() -> dict:
     """Analyze the current HTTP request using the ML models."""
     payload = request.get_data(as_text=True) or ""
     full_text = f"{request.method} {request.full_path}\n{payload}"
+    ip = request.remote_addr
+    logger.info("Analyzing request from %s", ip or "unknown")
     result = detector.analyze(full_text)
+    logger.info(
+        "Detection result - severity: %s, anomaly: %s, nids: %s",
+        result['severity']['label'],
+        result['anomaly']['label'],
+        result['nids']['label'],
+    )
     db.save_log(
         'unit',
         full_text,
@@ -63,7 +77,6 @@ def analyze_request() -> dict:
     })
     sev = str(result['severity']['label']).lower()
     anom = str(result['anomaly']['label']).lower()
-    ip = request.remote_addr
     if ip:
         now = time.time()
         dq = REQUEST_COUNTS[ip]
@@ -72,12 +85,14 @@ def analyze_request() -> dict:
             dq.popleft()
         if len(dq) > DOS_THRESHOLD:
             if firewall.block_ip(ip):
+                logger.warning("IP %s blocked due to DoS detection", ip)
                 db.save_blocked_ip(ip, 'dos')
                 return {'blocked': True}
 
         if sev == 'high' or anom not in ('normal', 'none'):
             if firewall.block_ip(ip):
                 reason = f"{result['anomaly']['label']} / {result['severity']['label']}"
+                logger.warning("IP %s blocked: %s", ip, reason)
                 db.save_blocked_ip(ip, reason)
                 return {'blocked': True}
     return result
