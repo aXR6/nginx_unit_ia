@@ -11,34 +11,40 @@ def ml_multiclass_predict(text: str) -> str:
 
 
 def _load_patterns():
+    # Regex based on OWASP/BlackHat patterns. See examcollection.com/blog/regex-explained
+    # and https://pt.wikipedia.org/wiki/ReDoS for background.
     return [
-        # XSS attempts including tag variations
-        (
-            re.compile(r"<\s*(script|img|iframe)[^>]*>.*?<\s*/\s*\1\s*>", re.I | re.S),
-            "xss",
-        ),
-        # Common SQL injection keywords
+        # XSS – javascript in tags or attributes
         (
             re.compile(
-                r"(?i)(?:union\s+select|select\s+.+\s+from|insert\s+into|drop\s+table|or\s+1=1)"
+                r"<\s*(script|img|iframe)[^>]*(src|onerror|onload)\s*=\s*['\"]?javascript:",
+                re.I,
+            ),
+            "xss",
+        ),
+        # SQLi – single quotes, comments and dangerous keywords
+        (
+            re.compile(
+                r"(\%27)|(')|(--)|(\%23)|(#)|\b(select|insert|update|delete|union|drop)\b",
+                re.I,
             ),
             "sql_injection",
         ),
-        # Directory traversal including encoded variants
-        (re.compile(r"(?:\.\.\/|\.\.\\|%2e%2e\/|%2e%2e\\)", re.I), "path_traversal"),
-        # Command injection characters
-        (re.compile(r"[;&|`]|\b(cat|bash|sh)\b", re.I), "command_injection"),
-        # URLs inside parameters that may indicate open redirect
-        (re.compile(r"(?:https?|ftp)://[^\s\"']+", re.I), "open_redirect"),
-        # File inclusion patterns
+        # Path Traversal – ../ or encoded variants
+        (re.compile(r"(\.\./|\.\.\\|%2e%2e/)", re.I), "path_traversal"),
+        # Command Injection – shell metacharacters
+        (re.compile(r"[;&|`]|/(bin/)?(bash|sh|cat)\b", re.I), "command_injection"),
+        # LFI/RFI – include file protocols
         (
-            re.compile(r"(?:\binclude\b|\brequire\b)[^\n]+\.(?:php|cfg|txt)", re.I),
+            re.compile(r"\b(include|require|php://|ftp://|file://)\b", re.I),
             "file_inclusion",
         ),
-        # XML External Entity
-        (re.compile(r"<!DOCTYPE\s+[^>]*\[\s*<!ENTITY\s+[^>]*>", re.I), "xxe"),
-        # HTTP header injection
-        (re.compile(r"\r?\n\s*[A-Za-z-]+:", re.I), "header_injection"),
+        # Open Redirect – raw URL parameter
+        (re.compile(r"(https?:\\/\\/)[^ ]+", re.I), "open_redirect"),
+        # XXE – external entity declaration
+        (re.compile(r"<!DOCTYPE\s+[^>]*ENTITY\s+SYSTEM", re.I), "xxe"),
+        # Header Injection – CRLF characters
+        (re.compile(r"%0d|%0a|\r|\n", re.I), "header_injection"),
         # Hidden field tampering
         (re.compile(r"hidden\s*=\s*['\"]?\w+['\"]?", re.I), "form_tampering"),
     ]
