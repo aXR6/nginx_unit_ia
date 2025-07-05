@@ -37,7 +37,9 @@ def stop_proxy():
 def start_panel():
     global _panel_server, _panel_thread
     if _panel_server is None:
-        _panel_server = make_server("0.0.0.0", config.WEB_PANEL_PORT, wsgi.app)
+        _panel_server = make_server(
+            "0.0.0.0", config.WEB_PANEL_PORT, wsgi.app, threaded=True
+        )
         _panel_thread = threading.Thread(target=_panel_server.serve_forever, daemon=True)
         _panel_thread.start()
         logger.info("Painel web iniciado na porta %s", config.WEB_PANEL_PORT)
