@@ -1,5 +1,10 @@
-from flask import Flask, render_template, jsonify, request, Response
+from flask import Flask, render_template, jsonify, request, Response, stream_with_context
 import requests
+import json
+import time
+import queue
+from collections import defaultdict, deque
+
 from . import db, firewall, config
 from .detection import Detector
 
@@ -10,6 +15,21 @@ detector = Detector()
 app = Flask(__name__)
 
 db.init_db()
+
+# Streaming listeners and DoS tracking
+log_listeners = []
+REQUEST_COUNTS = defaultdict(deque)
+REQUEST_WINDOW = 10  # seconds
+DOS_THRESHOLD = 20
+
+
+def notify_log(entry: dict) -> None:
+    """Send log entry to all active listeners."""
+    for q in list(log_listeners):
+        try:
+            q.put_nowait(entry)
+        except Exception:
+            pass
 
 
 @app.before_request
@@ -33,14 +53,33 @@ def analyze_request() -> dict:
         result['anomaly'],
         result['nids'],
     )
+    notify_log({
+        'created_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+        'iface': 'unit',
+        'log': full_text,
+        'severity': result['severity'],
+        'anomaly': result['anomaly'],
+        'nids': result['nids'],
+    })
     sev = str(result['severity']['label']).lower()
     anom = str(result['anomaly']['label']).lower()
     ip = request.remote_addr
-    if ip and (sev == 'high' or anom not in ('normal', 'none')):
-        if firewall.block_ip(ip):
-            reason = f"{result['anomaly']['label']} / {result['severity']['label']}"
-            db.save_blocked_ip(ip, reason)
-            return {'blocked': True}
+    if ip:
+        now = time.time()
+        dq = REQUEST_COUNTS[ip]
+        dq.append(now)
+        while dq and dq[0] < now - REQUEST_WINDOW:
+            dq.popleft()
+        if len(dq) > DOS_THRESHOLD:
+            if firewall.block_ip(ip):
+                db.save_blocked_ip(ip, 'dos')
+                return {'blocked': True}
+
+        if sev == 'high' or anom not in ('normal', 'none'):
+            if firewall.block_ip(ip):
+                reason = f"{result['anomaly']['label']} / {result['severity']['label']}"
+                db.save_blocked_ip(ip, reason)
+                return {'blocked': True}
     return result
 
 
@@ -75,6 +114,21 @@ def api_logs():
         for log in logs
     ]
     return jsonify(serialized)
+
+
+@app.route('/stream/logs')
+def stream_logs():
+    def generator():
+        q = queue.Queue()
+        log_listeners.append(q)
+        try:
+            while True:
+                entry = q.get()
+                yield f"data: {json.dumps(entry)}\n\n"
+        finally:
+            log_listeners.remove(q)
+
+    return Response(stream_with_context(generator()), mimetype='text/event-stream')
 
 
 @app.route('/api/blocked')
