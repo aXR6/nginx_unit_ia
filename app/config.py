@@ -1,15 +1,24 @@
 import os
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
 def sanitize_ifname(iface: str) -> str:
-    """Return interface name without NUL bytes or surrounding whitespace."""
+    """Return a clean interface name without NUL bytes or stray characters."""
     if not isinstance(iface, str):
         iface = str(iface)
+
     # split at first NUL in case the string contains embedded characters
     iface = iface.split("\x00", 1)[0]
+
+    # remove newlines and control characters
+    iface = re.sub(r"[\r\n\t\f\v]", "", iface)
+
+    # keep only common iface characters (alnum, dash, underscore, colon, dot)
+    iface = re.sub(r"[^A-Za-z0-9_:\-\.]+", "", iface)
+
     return iface.strip()
 
 POSTGRES_USER = os.getenv('POSTGRES_USER')
