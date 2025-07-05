@@ -38,7 +38,12 @@ DOS_THRESHOLD = 20
 
 @app.before_request
 def _analyze():
-    if request.path.startswith('/logs') or request.path.startswith('/blocked') or request.path.startswith('/api/'):
+    if (
+        request.path.startswith('/logs')
+        or request.path.startswith('/blocked')
+        or request.path.startswith('/api/')
+        or request.path.startswith('/stream/')
+    ):
         return
     result = analyze_request()
     if isinstance(result, dict) and result.get('blocked'):
@@ -225,6 +230,7 @@ def _forward(path: str):
             params=request.args,
             data=request.get_data(),
             allow_redirects=False,
+            timeout=5,
         )
     except Exception as exc:
         return Response(f"Erro ao encaminhar: {exc}", status=502)
