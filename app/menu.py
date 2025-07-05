@@ -81,7 +81,7 @@ def select_device():
 
 
 def select_interface():
-    interfaces = get_if_list()
+    interfaces = [config.sanitize_ifname(iface) for iface in get_if_list()]
     print("\nInterfaces dispon\u00edveis:")
     for idx, iface in enumerate(interfaces, 1):
         print(f"{idx}. {iface}")
@@ -93,9 +93,7 @@ def select_interface():
         if protection_thread and protection_thread.is_alive():
             print("Pare a prote\u00e7\u00e3o antes de mudar a interface.")
             return
-        selected = interfaces[idx]
-        # Remove any NUL characters that could break socket binding
-        selected = selected.replace("\x00", "")
+        selected = config.sanitize_ifname(interfaces[idx])
         config.NETWORK_INTERFACE = selected
         print(f"Interface selecionada: {config.NETWORK_INTERFACE}")
     except ValueError:

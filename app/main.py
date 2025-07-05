@@ -56,15 +56,19 @@ def run():
         detector = Detector()
     db.init_db()
     # Defensive sanitization in case the interface contains unexpected NULs
-    iface = config.NETWORK_INTERFACE.replace("\x00", "")
+    iface = config.sanitize_ifname(config.NETWORK_INTERFACE)
     logging.info("Monitorando interface %s...", iface)
-    sniffer = AsyncSniffer(
-        iface=iface,
-        prn=packet_callback,
-        store=False,
-    )
-    sniffer.start()
-    sniffer.join()
+    try:
+        sniffer = AsyncSniffer(
+            iface=iface,
+            prn=packet_callback,
+            store=False,
+        )
+        sniffer.start()
+        sniffer.join()
+    except Exception as exc:
+        logging.error("Falha ao iniciar sniffer: %s", exc)
+        print(f"Erro ao iniciar captura: {exc}")
 
 
 def stop():
