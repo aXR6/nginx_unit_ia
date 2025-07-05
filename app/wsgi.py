@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify
-from . import db
+from . import db, firewall
 
 app = Flask(__name__)
 
@@ -17,6 +17,7 @@ def logs():
 
 @app.route('/blocked')
 def blocked():
+    firewall.sync_blocked_ips_with_ufw()
     blocked = db.get_blocked_ips(limit=200)
     return render_template('blocked.html', title='IPs Bloqueados', blocked=blocked)
 
@@ -39,6 +40,7 @@ def api_logs():
 
 @app.route('/api/blocked')
 def api_blocked():
+    firewall.sync_blocked_ips_with_ufw()
     blocked = db.get_blocked_ips(limit=200)
     serialized = [
         {
