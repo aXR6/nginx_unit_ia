@@ -132,7 +132,13 @@ def blocked():
     page = int(request.args.get('page', '1'))
     firewall.sync_blocked_ips_with_ufw()
     blocked = db.get_blocked_ips(limit=100, offset=(page - 1) * 100)
-    return render_template('blocked.html', title='IPs Bloqueados', blocked=blocked, page=page)
+    models = {
+        'severity': config.SEVERITY_MODEL,
+        'anomaly': config.ANOMALY_MODEL,
+        'nids': config.NIDS_MODEL,
+        'semantic': config.SEMANTIC_MODEL,
+    }
+    return render_template('blocked.html', title='IPs Bloqueados', blocked=blocked, page=page, models=models)
 
 @app.route('/api/logs')
 def api_logs():
