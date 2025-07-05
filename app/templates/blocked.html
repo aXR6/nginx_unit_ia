@@ -1,24 +1,35 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="display-5 mb-4 text-center">IPs Bloqueados</h1>
-<div class="card">
-  <div class="card-body p-0">
-    <div class="table-responsive">
-        <div id="blocked-grid" class="grid-container info-table">
-            <div class="grid-header">
-                <div>IP</div>
-                <div>Status</div>
-                <div>Motivo</div>
-                <div>Data/Hora</div>
-            </div>
-            <div id="blocked-body"></div>
-        </div>
-        <div class="d-flex justify-content-between align-items-center p-2">
-            <button id="prev-page" class="btn btn-sm btn-secondary">Anterior</button>
-            <span id="page-info" class="fw-bold"></span>
-            <button id="next-page" class="btn btn-sm btn-secondary">Próxima</button>
-        </div>
+<div id="blocked-app" v-cloak>
+  <h1 class="display-5 mb-4 text-center">IPs Bloqueados</h1>
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-primary">
+            <tr>
+              <th>IP</th>
+              <th>Status</th>
+              <th>Motivo</th>
+              <th>Data/Hora</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in blocked" :key="item.ip + item.blocked_at">
+              <td>{{ item.ip }}</td>
+              <td :class="statusClass(item.status)">{{ item.status }}</td>
+              <td>{{ item.reason || '' }}</td>
+              <td>{{ item.blocked_at }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="d-flex justify-content-between align-items-center p-2">
+        <button @click="fetchBlocked(page-1)" :disabled="page === 1" class="btn btn-sm btn-secondary">Anterior</button>
+        <span class="fw-bold">Página {{ page }}</span>
+        <button @click="fetchBlocked(page+1)" class="btn btn-sm btn-secondary">Próxima</button>
+      </div>
     </div>
   </div>
 </div>
@@ -26,47 +37,37 @@
 
 {% block scripts %}
 <script>
-function addRow(item) {
-    const container = document.getElementById('blocked-body');
-    const row = document.createElement('div');
-    row.className = 'grid-row';
-    const statusClass = item.status === 'blocked' ? 'status-blocked' : 'status-unblocked';
-    row.innerHTML = `
-        <div>${item.ip}</div>
-        <div class="${statusClass}">${item.status}</div>
-        <div>${item.reason || ''}</div>
-        <div>${item.blocked_at}</div>`;
-    container.prepend(row);
-}
-
-let currentPage = {{ page }};
-let evt;
-
-async function fetchBlocked(page) {
-    const res = await fetch(`/api/blocked?page=${page}`);
-    const data = await res.json();
-    const body = document.getElementById('blocked-body');
-    body.innerHTML = '';
-    data.forEach(addRow);
-    document.getElementById('page-info').textContent = `Página ${page}`;
-    currentPage = page;
-    if (evt) evt.close();
-    if (page === 1) {
-        evt = new EventSource('/stream/blocked');
-        evt.onmessage = (e) => {
-            const item = JSON.parse(e.data);
-            addRow(item);
-        };
+const BlockedApp = {
+    data() {
+        return { blocked: [], page: {{ page }}, evt: null };
+    },
+    methods: {
+        statusClass(status) {
+            return status === 'blocked' ? 'status-blocked' : 'status-unblocked';
+        },
+        async fetchBlocked(page) {
+            if (page < 1) return;
+            const res = await fetch(`/api/blocked?page=${page}`);
+            this.blocked = await res.json();
+            this.page = page;
+            if (this.evt) this.evt.close();
+            if (page === 1) {
+                this.evt = new EventSource('/stream/blocked');
+                this.evt.onmessage = (e) => {
+                    const item = JSON.parse(e.data);
+                    this.blocked.unshift(item);
+                };
+            }
+        },
+    },
+    mounted() {
+        this.fetchBlocked(this.page);
+    },
+    beforeUnmount() {
+        if (this.evt) this.evt.close();
     }
-}
+};
 
-document.getElementById('prev-page').addEventListener('click', () => {
-    if (currentPage > 1) fetchBlocked(currentPage - 1);
-});
-document.getElementById('next-page').addEventListener('click', () => {
-    fetchBlocked(currentPage + 1);
-});
-
-fetchBlocked(currentPage);
+Vue.createApp(BlockedApp).mount('#blocked-app');
 </script>
 {% endblock %}
