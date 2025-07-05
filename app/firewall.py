@@ -1,10 +1,11 @@
 import re
 import subprocess
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
-from . import db
+from . import db, events
 
 
 def is_whitelisted(ip: str) -> bool:
@@ -88,6 +89,12 @@ def sync_blocked_ips_with_ufw() -> set:
     # insert new blocked IPs
     for ip in ufw_ips - current_blocked:
         db.save_blocked_ip(ip, "ufw", "blocked")
+        events.notify_blocked({
+            'ip': ip,
+            'reason': 'ufw',
+            'status': 'blocked',
+            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+        })
         logger.info("Recorded blocked IP from UFW: %s", ip)
 
     # mark IPs no longer blocked
@@ -97,6 +104,12 @@ def sync_blocked_ips_with_ufw() -> set:
                 "UPDATE blocked_ips SET status='unblocked' WHERE ip=%s AND status='blocked'",
                 (ip,),
             )
+        events.notify_blocked({
+            'ip': ip,
+            'reason': 'ufw',
+            'status': 'unblocked',
+            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+        })
         logger.info("Marked IP as unblocked: %s", ip)
 
     return ufw_ips
