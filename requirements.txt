@@ -12,3 +12,4 @@ protobuf
 sentencepiece
 accelerate
 bitsandbytes
+peft

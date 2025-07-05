@@ -56,6 +56,7 @@ Os limiares usados para bloquear IPs podem ser ajustados por variáveis de ambie
 
 - `BLOCK_SEVERITY_LEVELS` &ndash; níveis de severidade que resultam em bloqueio imediato (padrão `error,high`).
 - `BLOCK_ANOMALY_THRESHOLD` &ndash; probabilidade mínima de anomalia para bloquear quando o evento também é considerado *outlier* semântico (padrão `0.5`).
+- `NIDS_BASE_MODEL` &ndash; modelo base a ser usado quando um item de `NIDS_MODELS` contém apenas adaptadores LoRA (padrão `mistralai/Mistral-7B-v0.1`).
 
 ## Banco de dados
 
