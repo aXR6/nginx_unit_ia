@@ -2,20 +2,20 @@ from __future__ import annotations
 import os
 from typing import Optional
 
-from elasticsearch import Elasticsearch
+from opensearchpy import OpenSearch
 from . import config
 
-client: Optional[Elasticsearch] = None
+client: Optional[OpenSearch] = None
 
 if config.ES_HOST:
     es_kwargs = {"hosts": [config.ES_HOST]}
     if config.ES_USER and config.ES_PASSWORD:
         es_kwargs["basic_auth"] = (config.ES_USER, config.ES_PASSWORD)
-    client = Elasticsearch(**es_kwargs)
+    client = OpenSearch(**es_kwargs)
 
 
 def index_log(doc: dict) -> None:
-    """Index a log document into Elasticsearch."""
+    """Index a log document into OpenSearch."""
     if client is None:
         return
     try:
@@ -28,7 +28,7 @@ def index_log(doc: dict) -> None:
 
 
 def index_blocked_ip(doc: dict) -> None:
-    """Index blocked IP info into Elasticsearch."""
+    """Index blocked IP info into OpenSearch."""
     if client is None:
         return
     try:

@@ -15,7 +15,7 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
 - Embeddings gerados com `sentence-transformers/all-MiniLM-L6-v2` e
   classificação/anomalias usando `teoogherghi/Log-Analysis-Model-DistilBert`.
 - Registro opcional em banco PostgreSQL com esquema definido em `schema.sql`.
-- Integração opcional com Elasticsearch para indexar logs e IPs bloqueados.
+- Integração opcional com OpenSearch para indexar logs e IPs bloqueados.
 - Suporte a múltiplos modelos NIDS (`SilverDragon9/Sniffer.AI` e
   `Dumi2025/log-anomaly-detection-model-roberta`) para análise de diferentes tipos de tráfego.
 - Script interativo (`python -m app.menu`) para iniciar/parar o proxy e o painel, além de selecionar CPU ou GPU para inferência.
@@ -29,8 +29,8 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
    ```bash
    pip install -r requirements.txt
    ```
-   O arquivo já fixa `elasticsearch` na versão 8.x para manter compatibilidade
-   com clusters Elasticsearch 7 ou 8.
+   O arquivo já inclui `opensearch-py` na versão 2.x para manter compatibilidade
+   com o OpenSearch 2.
 3. (Opcional) Suba o contêiner do Nginx Unit e da aplicação de exemplo:
    ```bash
    docker-compose up -d
@@ -69,7 +69,7 @@ Os limiares usados para bloquear IPs podem ser ajustados por variáveis de ambie
 
 Defina `POSTGRES_HOST` e as demais variáveis de conexão para ativar o uso de PostgreSQL. Caso contrário, o proxy funciona sem dependência de banco, apenas registrando em arquivo.
 
-Além disso, é possível enviar os registros para um cluster Elasticsearch (versão comunidade). Configure `ES_HOST` com a URL do servidor e, opcionalmente, `ES_USER`/`ES_PASSWORD` caso a autenticação esteja habilitada. Os documentos são indexados nos índices `logs` e `blocked_ips` para facilitar buscas e visualizações via Kibana ou ferramentas compatíveis.
+Além disso, é possível enviar os registros para um cluster OpenSearch (versão comunidade). Configure `ES_HOST` com a URL do servidor e, opcionalmente, `ES_USER`/`ES_PASSWORD` caso a autenticação esteja habilitada. Os documentos são indexados nos índices `logs` e `blocked_ips` para facilitar buscas e visualizações via Kibana ou ferramentas compatíveis.
 
 ## Pentest e testes
 
