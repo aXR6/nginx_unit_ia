@@ -9,34 +9,22 @@ POSTGRES_DB = os.getenv('POSTGRES_DB')
 POSTGRES_HOST = os.getenv('POSTGRES_HOST')
 POSTGRES_PORT = int(os.getenv('POSTGRES_PORT', 5432))
 
-# Provide sensible defaults for the HuggingFace model identifiers so the
-# application can run even if environment variables are missing.
-SEMANTIC_MODEL = os.getenv(
-    'SEMANTIC_MODEL', 'sentence-transformers/all-MiniLM-L6-v2'
-)
-SEVERITY_MODEL = os.getenv(
-    'SEVERITY_MODEL', 'byviz/bylastic_classification_logs'
-)
-ANOMALY_MODEL = os.getenv(
-    'ANOMALY_MODEL', 'teoogherghi/Log-Analysis-Model-DistilBert'
-)
+# Model identifiers are defined only via environment variables
+SEMANTIC_MODEL = os.getenv('SEMANTIC_MODEL')
+SEVERITY_MODEL = os.getenv('SEVERITY_MODEL')
+ANOMALY_MODEL = os.getenv('ANOMALY_MODEL')
 # Allow a list of NIDS models to be configured. If ``NIDS_MODELS`` is not
 # provided, fall back to ``NIDS_MODEL`` or a sensible default.
 NIDS_MODELS = [
-    s.strip() for s in os.getenv(
-        'NIDS_MODELS',
-        'caffeinatedcherrychic/mistral-based-NIDS,SilverDragon9/Sniffer.AI',
-    ).split(',') if s.strip()
+    s.strip() for s in os.getenv('NIDS_MODELS', '').split(',') if s.strip()
 ]
 
 # Backwards compatibility with the old ``NIDS_MODEL`` variable. The first model
 # in ``NIDS_MODELS`` is treated as the primary one.
-NIDS_MODEL = os.getenv(
-    'NIDS_MODEL', NIDS_MODELS[0] if NIDS_MODELS else 'Dumi2025/log-anomaly-detection-model-roberta'
-)
+NIDS_MODEL = os.getenv('NIDS_MODEL', NIDS_MODELS[0] if NIDS_MODELS else None)
 
 # Base model to use when a NIDS entry provides only LoRA adapters
-NIDS_BASE_MODEL = os.getenv('NIDS_BASE_MODEL', 'mistralai/Mistral-7B-v0.1')
+NIDS_BASE_MODEL = os.getenv('NIDS_BASE_MODEL')
 
 SEMANTIC_THRESHOLD = float(os.getenv('SEMANTIC_THRESHOLD', '0.5'))
 BLOCK_SEVERITY_LEVELS = [s.strip().lower() for s in os.getenv('BLOCK_SEVERITY_LEVELS', 'error,high').split(',')]
