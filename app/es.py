@@ -19,7 +19,7 @@ def index_log(doc: dict) -> None:
     if client is None:
         return
     try:
-        client.index(index="logs", document=doc)
+        client.index(index="logs", body=doc)
     except Exception as exc:
         # ignore indexing errors but log them for debugging
         import logging
@@ -32,7 +32,7 @@ def index_blocked_ip(doc: dict) -> None:
     if client is None:
         return
     try:
-        client.index(index="blocked_ips", document=doc)
+        client.index(index="blocked_ips", body=doc)
     except Exception as exc:
         import logging
 
