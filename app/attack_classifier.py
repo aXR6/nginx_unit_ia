@@ -38,7 +38,8 @@ _CMD_PAT = re.compile(r"(;|&&|\|)\s*(cat|ls|whoami|id)")
 def classify(text: str) -> str:
     """Return a coarse attack category for ``text``.
 
-    The classification order is:
+    ``text`` may contain URL-encoded characters so we first decode it. The
+    classification order is:
 
     1. Large payloads are labelled ``dos`` because they are often associated
        with denial of service attempts.
@@ -47,14 +48,18 @@ def classify(text: str) -> str:
        configured, otherwise ``normal``.
     """
 
-    if len(text) > THRESHOLD:
+    from urllib.parse import unquote_plus
+
+    decoded = unquote_plus(text)
+
+    if len(decoded) > THRESHOLD:
         return "dos"
-    if _XSS_PAT.search(text):
+    if _XSS_PAT.search(decoded):
         return "xss"
-    if _SQLI_PAT.search(text):
+    if _SQLI_PAT.search(decoded):
         return "sqli"
-    if _TRAVERSAL_PAT.search(text):
+    if _TRAVERSAL_PAT.search(decoded):
         return "path_traversal"
-    if _CMD_PAT.search(text):
+    if _CMD_PAT.search(decoded):
         return "cmd_injection"
-    return ml_multiclass_predict(text)
+    return ml_multiclass_predict(decoded)

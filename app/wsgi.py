@@ -76,6 +76,7 @@ def analyze_request() -> dict:
         result['severity'],
         result['anomaly'],
         result['nids'],
+        attack_type,
         result['semantic'],
         ip=ip,
         ip_info=ip_info,
@@ -154,7 +155,7 @@ def logs():
     page = int(request.args.get('page', '1'))
     logs = db.get_logs(limit=100, offset=(page - 1) * 100)
     for item in logs:
-        item['attack_type'] = classify_attack(item['log'])
+        item['attack_type'] = item.get('attack_type') or classify_attack(item['log'])
         item['intensity'] = detection.calculate_intensity(
             item['severity']['label'],
             item['anomaly']['score'],
@@ -174,7 +175,7 @@ def log_detail(log_id: int):
     log = db.get_log(log_id)
     if not log:
         return 'Log não encontrado', 404
-    log['attack_type'] = classify_attack(log['log'])
+    log['attack_type'] = log.get('attack_type') or classify_attack(log['log'])
     intensity = detection.calculate_intensity(
         log['severity']['label'],
         log['anomaly']['score'],
@@ -217,7 +218,7 @@ def api_logs():
             'severity': log['severity'],
             'anomaly': log['anomaly'],
             'nids': log['nids'],
-            'attack_type': classify_attack(log['log']),
+            'attack_type': log.get('attack_type') or classify_attack(log['log']),
             'semantic': log.get('semantic'),
             'intensity': intensity,
         })
