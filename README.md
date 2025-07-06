@@ -12,7 +12,10 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
 - Cálculo de intensidade de ataque combinando resultados dos modelos.
 - Visualização detalhada de cada log com todas as informações classificadas.
 - Barra superior exibe informações resumidas dos modelos carregados.
+- Embeddings gerados com `sentence-transformers/all-MiniLM-L6-v2` e
+  classificação/anomalias usando `teoogherghi/Log-Analysis-Model-DistilBert`.
 - Registro opcional em banco PostgreSQL com esquema definido em `schema.sql`.
+- Integração opcional com Elasticsearch para indexar logs e IPs bloqueados.
 - Suporte a múltiplos modelos NIDS (`SilverDragon9/Sniffer.AI` e
   `Dumi2025/log-anomaly-detection-model-roberta`) para análise de diferentes tipos de tráfego.
 - Script interativo (`python -m app.menu`) para iniciar/parar o proxy e o painel, além de selecionar CPU ou GPU para inferência.
@@ -63,6 +66,8 @@ Os limiares usados para bloquear IPs podem ser ajustados por variáveis de ambie
 ## Banco de dados
 
 Defina `POSTGRES_HOST` e as demais variáveis de conexão para ativar o uso de PostgreSQL. Caso contrário, o proxy funciona sem dependência de banco, apenas registrando em arquivo.
+
+Além disso, é possível enviar os registros para um cluster Elasticsearch (versão comunidade). Configure `ES_HOST` com a URL do servidor e, opcionalmente, `ES_USER`/`ES_PASSWORD` caso a autenticação esteja habilitada. Os documentos são indexados nos índices `logs` e `blocked_ips` para facilitar buscas e visualizações via Kibana ou ferramentas compatíveis.
 
 ## Pentest e testes
 
