@@ -11,3 +11,4 @@ debug.log
 
 # Models
 models/
+app/sniffer_ai/models/

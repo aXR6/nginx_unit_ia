@@ -4,6 +4,7 @@ from sentence_transformers import SentenceTransformer, util
 import torch
 import logging
 from collections import deque
+from .sniffer_ai import Sniffer
 
 logger = logging.getLogger(__name__)
 from . import config
@@ -45,6 +46,14 @@ class Detector:
         # for compatibility with previous versions of the application.
         self.nids_models = []
         for model_name in config.NIDS_MODELS:
+            if model_name == "SilverDragon9/Sniffer.AI":
+                try:
+                    sniffer = Sniffer()
+                    self.nids_models.append((model_name, None, sniffer))
+                    continue
+                except Exception as exc:
+                    logger.error("Falha ao carregar Sniffer.AI: %s", exc)
+                    continue
             try:
                 tok = AutoTokenizer.from_pretrained(model_name)
                 mdl = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
@@ -108,6 +117,10 @@ class Detector:
 
         nids_details = []
         for model_name, tok, mdl in self.nids_models:
+            if tok is None and hasattr(mdl, "predict_from_text"):
+                label = mdl.predict_from_text(text)
+                nids_details.append({'label': label, 'score': [1.0], 'model': model_name})
+                continue
             inputs = tok(
                 text,
                 return_tensors="pt",
