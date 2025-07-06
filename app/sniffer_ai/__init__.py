@@ -25,8 +25,8 @@ class Sniffer:
     }
 
     FEATURE_COLUMNS = [
-        "date_numeric",
-        "time_numeric",
+        "date",
+        "time",
         "door_state",
         "sphone_signal",
         "label",
@@ -109,11 +109,11 @@ class Sniffer:
         df["sphone_signal"] = pd.to_numeric(
             df["sphone_signal"], errors="coerce"
         ).fillna(0)
-        df["date_numeric"] = (
+        df["date"] = (
             pd.to_datetime(df["date"], errors="coerce").astype("int64") // 10**9
         )
         t = pd.to_datetime(df["time"], errors="coerce")
-        df["time_numeric"] = t.dt.hour * 3600 + t.dt.minute * 60 + t.dt.second
+        df["time"] = t.dt.hour * 3600 + t.dt.minute * 60 + t.dt.second
         df["label"] = pd.to_numeric(df.get("label", 0), errors="coerce").fillna(0)
         return df[self.FEATURE_COLUMNS].astype(float)
 
