@@ -33,8 +33,10 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
    com o OpenSearch 2.
 3. (Opcional) Suba o contêiner do Nginx Unit e da aplicação de exemplo:
    ```bash
-   docker-compose up -d
+   docker-compose up -d --build
    ```
+   O compose irá montar a aplicação e instalar as dependências usando o arquivo
+   `Dockerfile.unit`.
 
 ## Uso
 
