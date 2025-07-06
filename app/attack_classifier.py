@@ -13,19 +13,39 @@ from __future__ import annotations
 
 import os
 import re
+from functools import lru_cache
+
+from transformers import pipeline
 
 
 THRESHOLD = int(os.getenv("ATTACK_SIZE_THRESHOLD", "1000"))
 
 
-def ml_multiclass_predict(text: str) -> str:
-    """Placeholder for a real ML classifier.
+@lru_cache()
+def _get_classifier():
+    """Return a zero-shot classification pipeline.
 
-    When a custom model is configured this function can be replaced with an
-    actual prediction call.  Until then it returns ``normal`` so that rule based
-    checks below handle most cases.
+    The model can be customised via the ``ATTACK_CLASSIFY_MODEL`` environment
+    variable.  ``facebook/bart-large-mnli`` is used by default.
     """
 
+    model_name = os.getenv("ATTACK_CLASSIFY_MODEL", "facebook/bart-large-mnli")
+    return pipeline("zero-shot-classification", model=model_name)
+
+
+_CANDIDATES = ["dos", "xss", "sqli", "cmd_injection", "path_traversal", "normal"]
+
+
+def ml_multiclass_predict(text: str) -> str:
+    """Classify ``text`` using a language model."""
+
+    clf = _get_classifier()
+    try:
+        result = clf(text, candidate_labels=_CANDIDATES, multi_label=False)
+        if result and "labels" in result:
+            return str(result["labels"][0])
+    except Exception:
+        pass
     return "normal"
 
 
