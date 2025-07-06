@@ -22,6 +22,14 @@ class Sniffer:
         7: "XSS",
     }
 
+    FEATURE_COLUMNS = [
+        "date_numeric",
+        "time_numeric",
+        "door_state",
+        "sphone_signal",
+        "label",
+    ]
+
     def __init__(self, model_dir: str | None = None):
         self.model_dir = model_dir or os.path.join(os.path.dirname(__file__), "models")
         os.makedirs(self.model_dir, exist_ok=True)
@@ -77,7 +85,8 @@ class Sniffer:
             "label": data.get("label", ""),
         }
 
-    def _prepare_features(self, feats: Dict[str, str]):
+    def _prepare_features(self, feats: Dict[str, str]) -> pd.DataFrame:
+        """Return a dataframe with the features expected by the models."""
         df = pd.DataFrame([feats])
         df["door_state"] = (
             df["door_state"]
@@ -94,18 +103,14 @@ class Sniffer:
         t = pd.to_datetime(df["time"], errors="coerce")
         df["time_numeric"] = t.dt.hour * 3600 + t.dt.minute * 60 + t.dt.second
         df["label"] = pd.to_numeric(df.get("label", 0), errors="coerce").fillna(0)
-        return (
-            df[["date_numeric", "time_numeric", "door_state", "sphone_signal", "label"]]
-            .astype(float)
-            .values
-        )
+        return df[self.FEATURE_COLUMNS].astype(float)
 
     def predict(self, feats: Dict[str, str]) -> str:
         model = self.models.get("garage_door")
         if model is None:
             return "Normal"
-        values = self._prepare_features(feats)
-        pred = int(model.predict(values)[0])
+        features = self._prepare_features(feats)
+        pred = int(model.predict(features)[0])
         return self.CLASS_LABELS.get(pred, str(pred))
 
     def predict_from_text(self, line: str) -> str:
