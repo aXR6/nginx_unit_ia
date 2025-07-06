@@ -16,7 +16,7 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
 - Suporte a múltiplos modelos NIDS (`SilverDragon9/Sniffer.AI` e
   `Dumi2025/log-anomaly-detection-model-roberta`) para análise de diferentes tipos de tráfego.
 - Script interativo (`python -m app.menu`) para iniciar/parar o proxy e o painel, além de selecionar CPU ou GPU para inferência.
-- Conjunto de regex robustos para detectar XSS, SQLi, SSRF, XXE, brute force, malware e diversos outros ataques, com fallback para modelo de linguagem e cuidado contra ReDoS.
+- Classificação de ataques realizada apenas por modelos de linguagem, sem regex.
 
 ## Instalação
 
