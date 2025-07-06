@@ -5,6 +5,8 @@ from typing import Dict, Iterable
 
 import pandas as pd
 import joblib
+import warnings
+import sklearn
 from huggingface_hub import hf_hub_download
 
 
@@ -38,7 +40,17 @@ class Sniffer:
         for name in ("fridge", "garage_door", "gps_tracker", "thermostat", "weather"):
             path = os.path.join(self.model_dir, f"{name}_model.pkl")
             if os.path.exists(path):
-                self.models[name] = joblib.load(path)
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        "ignore",
+                        category=sklearn.exceptions.InconsistentVersionWarning,
+                    )
+                    model = joblib.load(path)
+                self.models[name] = model
+                try:
+                    joblib.dump(model, path)
+                except Exception:
+                    pass
 
     def _ensure_models(self) -> None:
         required = [
