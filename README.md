@@ -29,6 +29,8 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
    ```bash
    pip install -r requirements.txt
    ```
+   O arquivo já fixa `elasticsearch` na versão 8.x para manter compatibilidade
+   com clusters Elasticsearch 7 ou 8.
 3. (Opcional) Suba o contêiner do Nginx Unit e da aplicação de exemplo:
    ```bash
    docker-compose up -d
