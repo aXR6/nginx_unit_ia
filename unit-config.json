@@ -7,8 +7,8 @@
     "applications": {
         "dummy": {
             "type": "python",
-            "path": "/www/app",
-            "module": "wsgi"
+            "path": "/www",
+            "module": "app.wsgi"
         }
     },
     "routes": [
