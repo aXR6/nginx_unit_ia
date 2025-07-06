@@ -9,4 +9,12 @@ if [ -n "$POSTGRES_HOST" ]; then
   done
 fi
 
+# Wait for Elasticsearch if configured
+if [ -n "$ES_HOST" ]; then
+  until curl -s "$ES_HOST" >/dev/null 2>&1; do
+    echo "Aguardando Elasticsearch..."
+    sleep 2
+  done
+fi
+
 python -m app.menu

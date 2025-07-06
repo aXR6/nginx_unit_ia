@@ -10,7 +10,7 @@ from .logging_setup import configure_logging
 configure_logging()
 logger = logging.getLogger(__name__)
 
-from . import db, firewall, config, events
+from . import db, firewall, config, events, es
 from .detection import Detector
 from . import detection
 
@@ -102,6 +102,20 @@ def analyze_request() -> dict:
         'semantic': result['semantic'],
         'intensity': result['intensity'],
     })
+    es.index_log({
+        'id': log_id,
+        'created_at': created_at,
+        'iface': 'unit',
+        'log': full_text,
+        'ip': ip,
+        'ip_info': ip_info,
+        'severity': result['severity'],
+        'anomaly': result['anomaly'],
+        'nids': result['nids'],
+        'attack_type': attack_type,
+        'semantic': result['semantic'],
+        'intensity': result['intensity'],
+    })
     sev = str(result['severity']['label']).lower()
     anom = str(result['anomaly']['label']).lower()
     anom_score = max(result['anomaly']['score']) if result['anomaly']['score'] else 0.0
@@ -122,6 +136,12 @@ def analyze_request() -> dict:
                     'status': 'blocked',
                     'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
                 })
+                es.index_blocked_ip({
+                    'ip': ip,
+                    'reason': 'dos',
+                    'status': 'blocked',
+                    'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+                })
                 return {'blocked': True}
 
         block_by_sev = sev in config.BLOCK_SEVERITY_LEVELS
@@ -136,6 +156,12 @@ def analyze_request() -> dict:
                 logger.warning("IP %s blocked: %s", ip, reason)
                 db.save_blocked_ip(ip, reason)
                 events.notify_blocked({
+                    'ip': ip,
+                    'reason': reason,
+                    'status': 'blocked',
+                    'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+                })
+                es.index_blocked_ip({
                     'ip': ip,
                     'reason': reason,
                     'status': 'blocked',

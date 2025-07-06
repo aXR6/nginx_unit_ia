@@ -9,6 +9,11 @@ POSTGRES_DB = os.getenv('POSTGRES_DB')
 POSTGRES_HOST = os.getenv('POSTGRES_HOST')
 POSTGRES_PORT = int(os.getenv('POSTGRES_PORT', 5432))
 
+# Optional Elasticsearch settings
+ES_HOST = os.getenv('ES_HOST')
+ES_USER = os.getenv('ES_USER')
+ES_PASSWORD = os.getenv('ES_PASSWORD')
+
 # Model identifiers are defined only via environment variables
 SEMANTIC_MODEL = os.getenv('SEMANTIC_MODEL')
 SEVERITY_MODEL = os.getenv('SEVERITY_MODEL')

@@ -107,6 +107,13 @@ def sync_blocked_ips_with_ufw() -> set:
             'status': 'blocked',
             'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
         })
+        from . import es
+        es.index_blocked_ip({
+            'ip': ip,
+            'reason': 'ufw',
+            'status': 'blocked',
+            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+        })
         logger.info("Recorded blocked IP from UFW: %s", ip)
 
     # remove IPs no longer blocked
@@ -117,6 +124,13 @@ def sync_blocked_ips_with_ufw() -> set:
                 (ip,),
             )
         events.notify_blocked({
+            'ip': ip,
+            'reason': 'ufw',
+            'status': 'unblocked',
+            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+        })
+        from . import es
+        es.index_blocked_ip({
             'ip': ip,
             'reason': 'ufw',
             'status': 'unblocked',
