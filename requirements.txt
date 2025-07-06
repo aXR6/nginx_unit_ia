@@ -13,3 +13,4 @@ sentencepiece
 accelerate
 bitsandbytes
 peft
+pandas
