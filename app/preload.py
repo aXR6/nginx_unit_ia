@@ -13,7 +13,7 @@ def download_models() -> None:
     models = [
         (config.SEVERITY_MODEL, True),
         (config.ANOMALY_MODEL, True),
-        *[(model, True) for model in config.NIDS_MODELS],
+        *[(model, True) for model in config.NIDS_MODELS if model != "SilverDragon9/Sniffer.AI"],
     ]
     for model_name, is_classifier in models:
         try:

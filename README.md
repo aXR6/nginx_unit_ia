@@ -79,6 +79,21 @@ O painel web possui a página `http://localhost:8080/blocked` que exibe todos os
 Sempre que essa página é acessada, a lista é sincronizada com as regras atuais do UFW, garantindo que o banco reflita o estado real do firewall.
 O proxy também monitora a quantidade de requisições de cada IP e bloqueia automaticamente padrões que indiquem ataques de negação de serviço.
 
+### Sniffer.AI em tempo real
+
+O IDS Sniffer.AI é opcional e seus modelos são baixados do Hugging Face na primeira
+execução. Ele aceita linhas de log no formato JSON ou `chave=valor` e pode ser
+utilizado para monitorar arquivos em tempo real:
+
+```python
+from app.sniffer_ai import Sniffer
+
+sniffer = Sniffer()
+for line in sniffer.stream_file('/var/log/iot.log'):
+    label = sniffer.predict_from_text(line)
+    print(label)
+```
+
 ### Whitelist
 
 IPs que nunca devem ser bloqueados podem ser cadastrados em uma whitelist. Os endereços
