@@ -15,4 +15,4 @@ bitsandbytes
 peft
 pandas
 joblib
-elasticsearch>=8,<9
+opensearch-py>=2,<3
