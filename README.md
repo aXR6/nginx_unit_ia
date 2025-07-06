@@ -17,8 +17,7 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
   `Dumi2025/log-anomaly-detection-model-roberta`) para análise de diferentes tipos de tráfego.
 - Script interativo (`python -m app.menu`) para iniciar/parar o proxy e o painel, além de selecionar CPU ou GPU para inferência.
 - Classificação de ataques realizada apenas por modelos de linguagem, sem regex.
-- Coluna **Ação** do painel é preenchida por um modelo de linguagem que analisa
-  o conteúdo da requisição (zero-shot com `facebook/bart-large-mnli` por padrão).
+- Coluna **Ação** do painel exibe a categoria retornada pelos modelos NIDS configurados.
 
 ## Instalação
 
