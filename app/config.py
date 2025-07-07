@@ -14,30 +14,14 @@ ES_HOST = os.getenv('ES_HOST')
 ES_USER = os.getenv('ES_USER')
 ES_PASSWORD = os.getenv('ES_PASSWORD')
 
-# Model identifiers are defined only via environment variables
-# Provide sensible defaults so the application can start even when the
-# environment file is missing. These match the values defined in
-# ``.env.example`` and allow running the container without additional
-# configuration.
-SEMANTIC_MODEL = os.getenv(
-    'SEMANTIC_MODEL', 'sentence-transformers/all-MiniLM-L6-v2'
-)
-SEVERITY_MODEL = os.getenv(
-    'SEVERITY_MODEL', 'byviz/bylastic_classification_logs'
-)
-ANOMALY_MODEL = os.getenv(
-    'ANOMALY_MODEL', 'teoogherghi/Log-Analysis-Model-DistilBert'
-)
-# Allow a list of NIDS models to be configured. If ``NIDS_MODELS`` is not
-# provided, fall back to ``NIDS_MODEL`` or a sensible default.
-NIDS_MODELS = [
-    s.strip()
-    for s in os.getenv(
-        'NIDS_MODELS',
-        'maleke01/RoBERTa-WebAttack,Canstralian/CyberAttackDetection,maheshj01/sql-injection-classifier,Dumi2025/log-anomaly-detection-model-roberta',
-    ).split(',')
-    if s.strip()
-]
+# Model identifiers are defined somente por variáveis de ambiente.
+# Consulte `.env.example` para valores recomendados.
+SEMANTIC_MODEL = os.getenv('SEMANTIC_MODEL')
+SEVERITY_MODEL = os.getenv('SEVERITY_MODEL')
+ANOMALY_MODEL = os.getenv('ANOMALY_MODEL')
+# Allow a list of NIDS models to be configured. Se ``NIDS_MODELS`` estiver
+# vazio, utiliza-se ``NIDS_MODEL`` (se definido) como primário.
+NIDS_MODELS = [s.strip() for s in os.getenv('NIDS_MODELS', '').split(',') if s.strip()]
 
 # Backwards compatibility with the old ``NIDS_MODEL`` variable. The first model
 # in ``NIDS_MODELS`` is treated as the primary one.

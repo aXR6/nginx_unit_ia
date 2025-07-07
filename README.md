@@ -12,11 +12,12 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
 - Cálculo de intensidade de ataque combinando resultados dos modelos.
 - Visualização detalhada de cada log com todas as informações classificadas.
 - Barra superior exibe informações resumidas dos modelos carregados.
-- Embeddings gerados com `sentence-transformers/all-MiniLM-L6-v2` e
-  classificação/anomalias usando `teoogherghi/Log-Analysis-Model-DistilBert`.
+- Embeddings e classificação/anomalias realizados pelos modelos definidos
+  nas variáveis `SEMANTIC_MODEL` e `ANOMALY_MODEL` do arquivo `.env`.
 - Registro opcional em banco PostgreSQL com esquema definido em `schema.sql`.
 - Integração opcional com OpenSearch para indexar logs e IPs bloqueados.
-- Tipo de ataque classificado por padrão com `maleke01/RoBERTa-WebAttack`; outros modelos NIDS podem complementar a análise.
+- O tipo de ataque é classificado utilizando o(s) modelo(s) definido(s)
+  em `NIDS_MODELS`.
 - Script interativo (`python -m app.menu`) para iniciar/parar o proxy e o painel, além de selecionar CPU ou GPU para inferência.
 - Classificação de ataques realizada apenas por modelos de linguagem, sem regex.
 - A coluna **Principal** exibe o tipo de ataque retornado pelo modelo definido como primário e **Categoria** mostra a maioria dos demais modelos.
@@ -95,11 +96,7 @@ O proxy também monitora a quantidade de requisições de cada IP e bloqueia aut
 
 ### Modelos para tráfego HTTP
 
-Esta versão utiliza modelos mais adequados para identificar ataques em requisições web.
-O classificador binário [`Canstralian/CyberAttackDetection`](https://huggingface.co/Canstralian/CyberAttackDetection)
-distingue tráfego legítimo de potenciais ataques, enquanto
-[`maheshj01/sql-injection-classifier`](https://huggingface.co/maheshj01/sql-injection-classifier)
-identifica consultas com SQL Injection. Ambos são definidos na variável `NIDS_MODELS` e são carregados automaticamente.
+Para detectar ataques em requisições web utilize o(s) modelo(s) configurado(s) em `NIDS_MODELS`.
 
 ### Whitelist
 

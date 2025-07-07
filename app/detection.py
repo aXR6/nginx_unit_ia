@@ -54,7 +54,9 @@ class Detector:
         else:
             name = ""
         if not name:
-            name = config.NIDS_MODELS[0] if config.NIDS_MODELS else "Canstralian/CyberAttackDetection"
+            name = config.NIDS_MODELS[0] if config.NIDS_MODELS else ""
+        if not name:
+            raise ValueError("Nenhum modelo NIDS configurado")
         self.primary_name = name
         self.primary = None
         self.primary_tok = None
