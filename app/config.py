@@ -40,4 +40,15 @@ WEB_PANEL_PORT = int(os.getenv('WEB_PANEL_PORT', '8080'))
 UNIT_PORT = int(os.getenv('UNIT_PORT', '8090'))
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://hello:8000')
 LOG_FILE = os.getenv('LOG_FILE', 'app.log')
+
+# If ``LOG_FILE`` is a relative path, place it inside the application
+# directory so the Unit process has permission to write the file. When the
+# application runs inside the official ``nginx/unit`` container, the current
+# working directory is ``/`` which would place the log file at the root where
+# the unprivileged ``unit`` user lacks write permissions.  Prefixing the path
+# with the directory of this configuration file ensures it resolves to a
+# writable location (``/www/app`` when using docker-compose).
+if LOG_FILE and not os.path.isabs(LOG_FILE):
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    LOG_FILE = os.path.join(BASE_DIR, LOG_FILE)
 UNIT_BACKEND_PORT = int(os.getenv('UNIT_BACKEND_PORT', '18080'))
