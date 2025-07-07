@@ -133,6 +133,14 @@ class Detector:
                 )
                 mdl = PeftModel.from_pretrained(base, model_name).to(self.device)
             self.nids_models.append((model_name, tok, mdl))
+
+        if getattr(config, "CNN_GRU_MODEL", None):
+            try:
+                from .cnn_gru_model import CNNGRUModel
+                cnnmdl = CNNGRUModel(config.CNN_GRU_MODEL)
+                self.nids_models.append((config.CNN_GRU_MODEL, None, cnnmdl))
+            except Exception as exc:
+                logger.warning("Falha ao carregar CNN_GRU_MODEL %s: %s", config.CNN_GRU_MODEL, exc)
         self.semantic_model = SentenceTransformer(config.SEMANTIC_MODEL, device=str(self.device))
         self.recent_embeddings = deque(maxlen=100)
         self.semantic_threshold = float(getattr(config, 'SEMANTIC_THRESHOLD', 0.5))

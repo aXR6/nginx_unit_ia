@@ -1,21 +1,21 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="display-5 mb-4 text-center">Detalhes do Log</h1>
+<h1 class="display-5 mb-4 text-center">Detalhes da Requisição</h1>
 <div class="card">
   <div class="card-body">
     <p><strong>ID:</strong> {{ log.id }}</p>
-    <p><strong>Timestamp:</strong> {{ log.created_at }}</p>
-    <p><strong>Interface:</strong> {{ log.iface }}</p>
-    <p><strong>IP:</strong> {{ log.ip }}</p>
-    <p><strong>Principal:</strong> {{ log.attack_type }}</p>
+    <p><strong>Data/Hora:</strong> {{ log.created_at }}</p>
+    <p><strong>Origem:</strong> {{ log.iface }}</p>
+    <p><strong>IP de Origem:</strong> {{ log.ip }}</p>
+    <p><strong>Ataque:</strong> {{ log.attack_type }}</p>
     <p><strong>Intensidade:</strong> {{ intensity }}</p>
     <pre class="mt-3">{{ log.log }}</pre>
-    <p><strong>Severity:</strong> {{ log.severity.label }}</p>
-    <p><strong>Anomaly:</strong> {{ log.anomaly.label }}</p>
-    <p><strong>Categoria:</strong> {{ log.category }}</p>
+    <p><strong>Severidade:</strong> {{ log.severity.label }}</p>
+    <p><strong>Anomalia:</strong> {{ log.anomaly.label }}</p>
+    <p><strong>Categoria (NIDS):</strong> {{ log.category }}</p>
     <p><strong>Similaridade:</strong> {{ log.semantic.similarity }}</p>
-    <p><strong>Modelos:</strong> S: {{ log.severity.model }} | A: {{ log.anomaly.model }} | N: {{ log.nids.model }}</p>
+    <p><strong>Modelos Utilizados:</strong> S: {{ log.severity.model }} | A: {{ log.anomaly.model }} | N: {{ log.nids.model }}</p>
   </div>
 </div>
 {% endblock %}

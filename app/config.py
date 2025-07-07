@@ -30,6 +30,9 @@ NIDS_MODEL = os.getenv('NIDS_MODEL', NIDS_MODELS[0] if NIDS_MODELS else None)
 # Base model to use when a NIDS entry provides only LoRA adapters
 NIDS_BASE_MODEL = os.getenv('NIDS_BASE_MODEL')
 
+# Optional CNN-GRU model for web attack detection
+CNN_GRU_MODEL = os.getenv('CNN_GRU_MODEL')
+
 SEMANTIC_THRESHOLD = float(os.getenv('SEMANTIC_THRESHOLD', '0.5'))
 BLOCK_SEVERITY_LEVELS = [s.strip().lower() for s in os.getenv('BLOCK_SEVERITY_LEVELS', 'error,high').split(',')]
 BLOCK_ANOMALY_THRESHOLD = float(os.getenv('BLOCK_ANOMALY_THRESHOLD', '0.5'))
