@@ -99,6 +99,7 @@ def analyze_request() -> dict:
         'anomaly': result['anomaly'],
         'nids': result['nids'],
         'attack_type': attack_type,
+        'category': result['nids'].get('majority', result['nids']['label']),
         'semantic': result['semantic'],
         'intensity': result['intensity'],
     })
@@ -113,6 +114,7 @@ def analyze_request() -> dict:
         'anomaly': result['anomaly'],
         'nids': result['nids'],
         'attack_type': attack_type,
+        'category': result['nids'].get('majority', result['nids']['label']),
         'semantic': result['semantic'],
         'intensity': result['intensity'],
     })
@@ -181,6 +183,7 @@ def logs():
     logs = db.get_logs(limit=100, offset=(page - 1) * 100)
     for item in logs:
         item['attack_type'] = item.get('attack_type') or item['nids']['label']
+        item['category'] = item['nids'].get('majority', item['nids']['label'])
         item['intensity'] = detection.calculate_intensity(
             item['severity']['label'],
             item['anomaly']['score'],
@@ -201,6 +204,7 @@ def log_detail(log_id: int):
     if not log:
         return 'Log não encontrado', 404
     log['attack_type'] = log.get('attack_type') or log['nids']['label']
+    log['category'] = log['nids'].get('majority', log['nids']['label'])
     intensity = detection.calculate_intensity(
         log['severity']['label'],
         log['anomaly']['score'],
@@ -244,6 +248,7 @@ def api_logs():
             'anomaly': log['anomaly'],
             'nids': log['nids'],
             'attack_type': log.get('attack_type') or log['nids']['label'],
+            'category': log['nids'].get('majority', log['nids']['label']),
             'semantic': log.get('semantic'),
             'intensity': intensity,
         })

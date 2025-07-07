@@ -43,29 +43,37 @@ class Detector:
         self.severity_model = AutoModelForSequenceClassification.from_pretrained(config.SEVERITY_MODEL).to(self.device)
         self.anomaly_tokenizer = AutoTokenizer.from_pretrained(config.ANOMALY_MODEL)
         self.anomaly_model = AutoModelForSequenceClassification.from_pretrained(config.ANOMALY_MODEL).to(self.device)
-        # Load one or more NIDS models. ``config.NIDS_MODELS`` contains the list
-        # of model identifiers. The first one is considered the primary model
-        # for compatibility with previous versions of the application.
+        # Sniffer.AI is mandatory and always loaded. Other NIDS models are
+        # optional and listed in ``config.NIDS_MODELS``.  ``self.sniffer`` holds
+        # the classifier used to define the attack type while ``self.nids_models``
+        # stores additional models for reference.
+        self.sniffer = None
+        try:
+            self.sniffer = HFTextSniffer("SilverDragon9/Sniffer.AI")
+        except Exception as exc:
+            logger.error("Falha ao carregar Sniffer.AI via Transformers: %s", exc)
+            try:
+                self.sniffer = Sniffer()
+            except Exception as exc2:
+                logger.error("Falha ao carregar Sniffer.AI (legacy): %s", exc2)
+
         self.nids_models = []
         for model_name in config.NIDS_MODELS:
             if model_name == "SilverDragon9/Sniffer.AI":
-                try:
-                    sniffer = HFTextSniffer(model_name)
-                    self.nids_models.append((model_name, None, sniffer))
-                    continue
-                except Exception as exc:
-                    logger.error(
-                        "Falha ao carregar Sniffer.AI via Transformers: %s", exc
-                    )
-                    try:
-                        sniffer = Sniffer()
-                        self.nids_models.append((model_name, None, sniffer))
-                        continue
-                    except Exception as exc2:
-                        logger.error(
-                            "Falha ao carregar Sniffer.AI (legacy): %s", exc2
-                        )
-                        continue
+                continue
+            try:
+                tok = AutoTokenizer.from_pretrained(model_name)
+                mdl = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
+            except OSError:
+                logger.info(
+                    "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
+                    model_name,
+                    config.NIDS_BASE_MODEL,
+                )
+                tok = AutoTokenizer.from_pretrained(config.NIDS_BASE_MODEL)
+                base = AutoModelForSequenceClassification.from_pretrained(config.NIDS_BASE_MODEL)
+                mdl = PeftModel.from_pretrained(base, model_name).to(self.device)
+            self.nids_models.append((model_name, tok, mdl))
             try:
                 tok = AutoTokenizer.from_pretrained(model_name)
                 mdl = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
@@ -128,6 +136,16 @@ class Detector:
         severity_label = self.severity_model.config.id2label.get(severity_label_idx, str(severity_label_idx))
 
         nids_details = []
+
+        sniffer_label, sniffer_score = "Normal", [1.0]
+        if self.sniffer is not None:
+            result = self.sniffer.predict_from_text(text)
+            if isinstance(result, tuple):
+                sniffer_label, sniffer_score = result
+            else:
+                sniffer_label = result
+        nids_details.append({'label': sniffer_label, 'score': sniffer_score, 'model': 'SilverDragon9/Sniffer.AI'})
+
         for model_name, tok, mdl in self.nids_models:
             if tok is None and hasattr(mdl, "predict_from_text"):
                 result = mdl.predict_from_text(text)
@@ -151,11 +169,10 @@ class Detector:
             label = mdl.config.id2label.get(label_idx, str(label_idx))
             nids_details.append({'label': label, 'score': score, 'model': model_name})
 
-        # Determine final label by majority vote among models
         from collections import Counter
         label_counts = Counter(d['label'] for d in nids_details)
-        final_label = label_counts.most_common(1)[0][0]
-        final_detail = next(d for d in nids_details if d['label'] == final_label)
+        majority_label = label_counts.most_common(1)[0][0]
+        majority_detail = next(d for d in nids_details if d['label'] == majority_label)
         intensity = calculate_intensity(severity_label, anomaly_score, similarity)
 
         return {
@@ -170,9 +187,11 @@ class Detector:
                 'model': config.SEVERITY_MODEL,
             },
             'nids': {
-                'label': final_label,
-                'score': final_detail['score'],
-                'model': ', '.join(config.NIDS_MODELS),
+                'label': sniffer_label,
+                'score': sniffer_score,
+                'model': 'SilverDragon9/Sniffer.AI',
+                'majority': majority_label,
+                'majority_score': majority_detail['score'],
                 'details': nids_details,
             },
             'semantic': {

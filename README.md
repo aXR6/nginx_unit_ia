@@ -16,11 +16,10 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
   classificação/anomalias usando `teoogherghi/Log-Analysis-Model-DistilBert`.
 - Registro opcional em banco PostgreSQL com esquema definido em `schema.sql`.
 - Integração opcional com OpenSearch para indexar logs e IPs bloqueados.
-- Suporte a múltiplos modelos NIDS (`SilverDragon9/Sniffer.AI` e
-  `Dumi2025/log-anomaly-detection-model-roberta`) para análise de diferentes tipos de tráfego.
+- Tipo de ataque sempre classificado com o IDS `SilverDragon9/Sniffer.AI`; outros modelos NIDS podem complementar a análise.
 - Script interativo (`python -m app.menu`) para iniciar/parar o proxy e o painel, além de selecionar CPU ou GPU para inferência.
 - Classificação de ataques realizada apenas por modelos de linguagem, sem regex.
-- Coluna **Ação** do painel exibe a categoria retornada pelos modelos NIDS configurados.
+- Coluna **Sniffer.AI** exibe o tipo de ataque retornado por esse IDS e a coluna **Categoria** mostra a maioria dos demais modelos.
 
 ## Instalação
 
@@ -96,7 +95,8 @@ O proxy também monitora a quantidade de requisições de cada IP e bloqueia aut
 
 ### Sniffer.AI em tempo real
 
-O IDS Sniffer.AI é opcional e pode ser utilizado em duas formas. A classe
+O IDS Sniffer.AI é utilizado pela aplicação para classificar o tipo de ataque,
+mas também pode ser executado de forma independente. A classe
 `HFTextSniffer` carrega o modelo do Hugging Face via Transformers enquanto a
 classe `Sniffer` utiliza os artefatos `.pkl` originais. Ambos aceitam linhas de
 log no formato JSON ou `chave=valor` e permitem monitorar arquivos em tempo

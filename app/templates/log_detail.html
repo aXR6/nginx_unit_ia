@@ -8,12 +8,12 @@
     <p><strong>Timestamp:</strong> {{ log.created_at }}</p>
     <p><strong>Interface:</strong> {{ log.iface }}</p>
     <p><strong>IP:</strong> {{ log.ip }}</p>
-    <p><strong>Tipo Ataque:</strong> {{ log.attack_type }}</p>
+    <p><strong>Sniffer.AI:</strong> {{ log.attack_type }}</p>
     <p><strong>Intensidade:</strong> {{ intensity }}</p>
     <pre class="mt-3">{{ log.log }}</pre>
     <p><strong>Severity:</strong> {{ log.severity.label }}</p>
     <p><strong>Anomaly:</strong> {{ log.anomaly.label }}</p>
-    <p><strong>Categoria:</strong> {{ log.nids.label }}</p>
+    <p><strong>Categoria:</strong> {{ log.category }}</p>
     <p><strong>Similaridade:</strong> {{ log.semantic.similarity }}</p>
     <p><strong>Modelos:</strong> S: {{ log.severity.model }} | A: {{ log.anomaly.model }} | N: {{ log.nids.model }}</p>
   </div>
