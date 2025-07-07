@@ -99,7 +99,7 @@ O proxy também monitora a quantidade de requisições de cada IP e bloqueia aut
 ### Modelos para tráfego HTTP
 
 Para detectar ataques em requisições web utilize o(s) modelo(s) configurado(s) em `NIDS_MODELS`.
-Um exemplo com ótimo desempenho é [`maleke01/RoBERTa-WebAttack`](https://huggingface.co/maleke01/RoBERTa-WebAttack).
+O repositório agora sugere [`SilverDragon9/Sniffer.AI`](https://huggingface.co/SilverDragon9/Sniffer.AI) como modelo principal, fornecendo rótulos detalhados como *Injection*, *XSS* ou *Scanning*. O classificador [`maleke01/RoBERTa-WebAttack`](https://huggingface.co/maleke01/RoBERTa-WebAttack) permanece como apoio para indicar se há ataque web ou não.
 Também é possível utilizar o modelo híbrido de CNN com GRU disponível em [`YangYang-Research/web-attack-detection`](https://huggingface.co/YangYang-Research/web-attack-detection) definindo `CNN_GRU_MODEL` no `.env`.
 
 ### Whitelist
