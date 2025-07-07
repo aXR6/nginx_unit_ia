@@ -5,6 +5,8 @@ import torch
 import logging
 from collections import deque
 
+from .cnn_gru_model import CNNGRUModel
+
 from . import config
 
 logger = logging.getLogger(__name__)
@@ -16,12 +18,7 @@ ANOMALY_LABELS = {
 }
 
 # Manual label overrides for specific NIDS models lacking id2label metadata
-NIDS_LABEL_OVERRIDES = {
-    "maleke01/RoBERTa-WebAttack": {
-        0: "normal",
-        1: "webattack",
-    },
-}
+NIDS_LABEL_OVERRIDES = {}
 
 
 def calculate_intensity(sev_label: str, anomaly_scores: list, similarity: float) -> float:
@@ -80,33 +77,40 @@ class Detector:
         self.primary_name = name
         self.primary = None
         self.primary_tok = None
-        try:
-            self.primary_tok = AutoTokenizer.from_pretrained(
-                self.primary_name,
-                trust_remote_code=True,
-            )
-            self.primary = AutoModelForSequenceClassification.from_pretrained(
-                self.primary_name,
-                trust_remote_code=True,
-            ).to(self.device)
-        except (OSError, ValueError):
-            base_name = config.NIDS_BASE_MODEL or "distilbert-base-uncased"
-            logger.info(
-                "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
-                self.primary_name,
-                base_name,
-            )
-            self.primary_tok = AutoTokenizer.from_pretrained(
-                base_name,
-                trust_remote_code=True,
-            )
-            base = AutoModelForSequenceClassification.from_pretrained(
-                base_name,
-                trust_remote_code=True,
-            )
-            self.primary = PeftModel.from_pretrained(base, self.primary_name).to(self.device)
+        if self.primary_name == "YangYang-Research/web-attack-detection":
+            self.primary = CNNGRUModel(self.primary_name)
+        else:
+            try:
+                self.primary_tok = AutoTokenizer.from_pretrained(
+                    self.primary_name,
+                    trust_remote_code=True,
+                )
+                self.primary = AutoModelForSequenceClassification.from_pretrained(
+                    self.primary_name,
+                    trust_remote_code=True,
+                ).to(self.device)
+            except (OSError, ValueError):
+                base_name = config.NIDS_BASE_MODEL or "distilbert-base-uncased"
+                logger.info(
+                    "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
+                    self.primary_name,
+                    base_name,
+                )
+                self.primary_tok = AutoTokenizer.from_pretrained(
+                    base_name,
+                    trust_remote_code=True,
+                )
+                base = AutoModelForSequenceClassification.from_pretrained(
+                    base_name,
+                    trust_remote_code=True,
+                )
+                self.primary = PeftModel.from_pretrained(base, self.primary_name).to(self.device)
 
         for model_name in config.NIDS_MODELS[1:]:
+            if model_name == "YangYang-Research/web-attack-detection":
+                mdl = CNNGRUModel(model_name)
+                self.nids_models.append((model_name, None, mdl))
+                continue
             try:
                 tok = AutoTokenizer.from_pretrained(
                     model_name,
@@ -134,13 +138,6 @@ class Detector:
                 mdl = PeftModel.from_pretrained(base, model_name).to(self.device)
             self.nids_models.append((model_name, tok, mdl))
 
-        if getattr(config, "CNN_GRU_MODEL", None):
-            try:
-                from .cnn_gru_model import CNNGRUModel
-                cnnmdl = CNNGRUModel(config.CNN_GRU_MODEL)
-                self.nids_models.append((config.CNN_GRU_MODEL, None, cnnmdl))
-            except Exception as exc:
-                logger.warning("Falha ao carregar CNN_GRU_MODEL %s: %s", config.CNN_GRU_MODEL, exc)
         self.semantic_model = SentenceTransformer(config.SEMANTIC_MODEL, device=str(self.device))
         self.recent_embeddings = deque(maxlen=100)
         self.semantic_threshold = float(getattr(config, 'SEMANTIC_THRESHOLD', 0.5))
