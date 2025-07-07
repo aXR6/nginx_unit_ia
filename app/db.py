@@ -104,6 +104,38 @@ def get_blocked_ips(limit=100, offset=0):
         return cur.fetchall()
 
 
+def get_blocked_ip(ip: str):
+    if conn is None:
+        return None
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            "SELECT * FROM blocked_ips WHERE ip=%s ORDER BY blocked_at DESC LIMIT 1",
+            (ip,),
+        )
+        return cur.fetchone()
+
+
+def get_logs_by_ip(ip: str, limit: int = 20):
+    if conn is None:
+        return []
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            "SELECT id, created_at, log FROM logs WHERE ip=%s ORDER BY created_at DESC LIMIT %s",
+            (ip, limit),
+        )
+        return cur.fetchall()
+
+
+def unblock_ip(ip: str):
+    if conn is None:
+        return
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            "UPDATE blocked_ips SET status='unblocked' WHERE ip=%s AND status='blocked'",
+            (ip,),
+        )
+
+
 def add_whitelist_ip(ip: str):
     if conn is None:
         return

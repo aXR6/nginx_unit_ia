@@ -8,12 +8,11 @@
     <p><strong>Data/Hora:</strong> {{ log.created_at }}</p>
     <p><strong>Origem:</strong> {{ log.iface }}</p>
     <p><strong>IP de Origem:</strong> {{ log.ip }}</p>
-    <p><strong>Ataque:</strong> {{ log.attack_type }}</p>
+    <p><strong>Ataque Detectado:</strong> {{ 'Sim' if log.is_attack else 'Não' }}</p>
     <p><strong>Intensidade:</strong> {{ intensity }}</p>
     <pre class="mt-3">{{ log.log }}</pre>
     <p><strong>Severidade:</strong> {{ log.severity.label }}</p>
     <p><strong>Anomalia:</strong> {{ log.anomaly.label }}</p>
-    <p><strong>Categoria (NIDS):</strong> {{ log.category }}</p>
     <p><strong>Similaridade:</strong> {{ log.semantic.similarity }}</p>
     <p><strong>Modelos Utilizados:</strong> S: {{ log.severity.model }} | A: {{ log.anomaly.model }} | N: {{ log.nids.model }}</p>
   </div>

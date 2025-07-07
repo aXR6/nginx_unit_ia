@@ -37,6 +37,11 @@ REQUEST_WINDOW = 10  # seconds
 DOS_THRESHOLD = 20
 
 
+def _is_attack(label: str) -> bool:
+    """Return True if the given label indicates an attack."""
+    return str(label).lower() not in ("normal", "benign", "none")
+
+
 @app.before_request
 def _analyze():
     if (
@@ -103,6 +108,7 @@ def analyze_request() -> dict:
         'nids': result['nids'],
         'attack_type': attack_type,
         'category': result['nids'].get('majority', result['nids']['label']),
+        'is_attack': _is_attack(result['nids'].get('majority', result['nids']['label'])),
         'semantic': result['semantic'],
         'intensity': result['intensity'],
     })
@@ -118,6 +124,7 @@ def analyze_request() -> dict:
         'nids': result['nids'],
         'attack_type': attack_type,
         'category': result['nids'].get('majority', result['nids']['label']),
+        'is_attack': _is_attack(result['nids'].get('majority', result['nids']['label'])),
         'semantic': result['semantic'],
         'intensity': result['intensity'],
     })
@@ -187,6 +194,7 @@ def logs():
     for item in logs:
         item['attack_type'] = item.get('attack_type') or item['nids'].get('majority', item['nids']['label'])
         item['category'] = item['nids'].get('majority', item['nids']['label'])
+        item['is_attack'] = _is_attack(item['category'])
         item['intensity'] = detection.calculate_intensity(
             item['severity']['label'],
             item['anomaly']['score'],
@@ -208,6 +216,7 @@ def log_detail(log_id: int):
         return 'Log não encontrado', 404
     log['attack_type'] = log.get('attack_type') or log['nids'].get('majority', log['nids']['label'])
     log['category'] = log['nids'].get('majority', log['nids']['label'])
+    log['is_attack'] = _is_attack(log['category'])
     intensity = detection.calculate_intensity(
         log['severity']['label'],
         log['anomaly']['score'],
@@ -228,6 +237,53 @@ def blocked():
         'semantic': config.SEMANTIC_MODEL,
     }
     return render_template('blocked.html', title='IPs Bloqueados', blocked=blocked, page=page, models=models)
+
+
+@app.route('/blocked/<ip>')
+def blocked_detail(ip: str):
+    item = db.get_blocked_ip(ip)
+    if not item:
+        return 'IP não encontrado', 404
+    logs = db.get_logs_by_ip(ip)
+    return render_template('blocked_detail.html', title='IP Bloqueado', item=item, logs=logs)
+
+
+@app.route('/unblock/<ip>', methods=['POST'])
+def unblock_ip_route(ip: str):
+    if firewall.unblock_ip(ip):
+        db.unblock_ip(ip)
+        events.notify_blocked({
+            'ip': ip,
+            'reason': 'manual',
+            'status': 'unblocked',
+            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+        })
+        es.index_blocked_ip({
+            'ip': ip,
+            'reason': 'manual',
+            'status': 'unblocked',
+            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    return ('', 204)
+
+
+@app.route('/api/unblock/<ip>', methods=['POST'])
+def api_unblock(ip: str):
+    if firewall.unblock_ip(ip):
+        db.unblock_ip(ip)
+        events.notify_blocked({
+            'ip': ip,
+            'reason': 'manual',
+            'status': 'unblocked',
+            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+        })
+        es.index_blocked_ip({
+            'ip': ip,
+            'reason': 'manual',
+            'status': 'unblocked',
+            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    return ('', 204)
 
 @app.route('/api/logs')
 def api_logs():
@@ -252,6 +308,7 @@ def api_logs():
             'nids': log['nids'],
             'attack_type': log.get('attack_type') or log['nids'].get('majority', log['nids']['label']),
             'category': log['nids'].get('majority', log['nids']['label']),
+            'is_attack': _is_attack(log['nids'].get('majority', log['nids']['label'])),
             'semantic': log.get('semantic'),
             'intensity': intensity,
         })

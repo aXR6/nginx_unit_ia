@@ -60,6 +60,35 @@ def block_ip(ip: str) -> bool:
         return False
 
 
+def unblock_ip(ip: str) -> bool:
+    """Remove UFW rule for the given IP."""
+    if not is_ip_blocked(ip):
+        return False
+    try:
+        subprocess.run(
+            [
+                "sudo",
+                "ufw",
+                "delete",
+                "deny",
+                "from",
+                ip,
+                "to",
+                "any",
+                "port",
+                str(config.UNIT_BACKEND_PORT),
+            ],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        logger.info("UFW rule removed for %s", ip)
+        return True
+    except Exception as exc:
+        logging.error("Erro ao desbloquear IP %s: %s", ip, exc)
+        return False
+
+
 def get_ufw_blocked_ips() -> set:
     """Return the current set of blocked IPs from UFW rules."""
     try:
