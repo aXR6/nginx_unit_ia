@@ -18,8 +18,14 @@ class HFTextSniffer:
 
     def __init__(self, repo: str = "SilverDragon9/Sniffer.AI") -> None:
         self.repo = repo
-        self.tokenizer = AutoTokenizer.from_pretrained(repo)
-        self.model = AutoModelForSequenceClassification.from_pretrained(repo)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            repo,
+            trust_remote_code=True,
+        )
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            repo,
+            trust_remote_code=True,
+        )
 
     def predict_from_text(self, text: str):
         inputs = self.tokenizer(text, truncation=True, padding=True, return_tensors="pt")
