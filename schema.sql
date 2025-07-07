@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS logs (
     severity JSONB,
     anomaly JSONB,
     nids JSONB,
-    attack_type TEXT,
     semantic JSONB
 );
 

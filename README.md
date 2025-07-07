@@ -18,11 +18,9 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
   `trust_remote_code` quando especificados em `.env`.
 - Registro opcional em banco PostgreSQL com esquema definido em `schema.sql`.
 - Integração opcional com OpenSearch para indexar logs e IPs bloqueados.
-- O tipo de ataque é classificado utilizando o(s) modelo(s) definido(s)
-  em `NIDS_MODELS`.
+- A categoria do tráfego é determinada pelo modelo configurado em `NIDS_MODELS`.
 - Script interativo (`python -m app.menu`) para iniciar/parar o proxy e o painel, além de selecionar CPU ou GPU para inferência.
 - Classificação de ataques realizada apenas por modelos de linguagem, sem regex.
-- A coluna **Principal** exibe o tipo de ataque retornado pelo modelo definido como primário e **Categoria** mostra a maioria dos demais modelos.
 
 ## Instalação
 
@@ -71,7 +69,6 @@ Os limiares usados para bloquear IPs podem ser ajustados por variáveis de ambie
 - `BLOCK_SEVERITY_LEVELS` &ndash; níveis de severidade que resultam em bloqueio imediato (padrão `error,high`).
 - `BLOCK_ANOMALY_THRESHOLD` &ndash; probabilidade mínima de anomalia para bloquear quando o evento também é considerado *outlier* semântico (padrão `0.5`).
 - `NIDS_BASE_MODEL` &ndash; modelo base a ser usado quando um item de `NIDS_MODELS` contém apenas adaptadores LoRA.
-- O tipo de ataque armazenado nos logs utiliza diretamente o rótulo retornado pelo modelo NIDS configurado.
 
 ## Banco de dados
 
@@ -99,8 +96,7 @@ O proxy também monitora a quantidade de requisições de cada IP e bloqueia aut
 ### Modelos para tráfego HTTP
 
 Para detectar ataques em requisições web utilize o(s) modelo(s) configurado(s) em `NIDS_MODELS`.
-Sugerimos o classificador [`maleke01/RoBERTa-WebAttack`](https://huggingface.co/maleke01/RoBERTa-WebAttack) como ponto de partida.
-Também é possível utilizar o modelo híbrido de CNN com GRU disponível em [`YangYang-Research/web-attack-detection`](https://huggingface.co/YangYang-Research/web-attack-detection) definindo `CNN_GRU_MODEL` no `.env`.
+Como referência inicial recomendamos [`YangYang-Research/web-attack-detection`](https://huggingface.co/YangYang-Research/web-attack-detection).
 
 ### Whitelist
 
