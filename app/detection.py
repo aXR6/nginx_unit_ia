@@ -81,7 +81,7 @@ class Detector:
                 self.primary_name,
                 trust_remote_code=True,
             ).to(self.device)
-        except OSError:
+        except (OSError, ValueError):
             base_name = config.NIDS_BASE_MODEL or "distilbert-base-uncased"
             logger.info(
                 "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
@@ -108,7 +108,7 @@ class Detector:
                     model_name,
                     trust_remote_code=True,
                 ).to(self.device)
-            except OSError:
+            except (OSError, ValueError):
                 base_name = config.NIDS_BASE_MODEL or "distilbert-base-uncased"
                 logger.info(
                     "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
