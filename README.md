@@ -36,7 +36,9 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
    docker-compose up -d --build
    ```
    O compose irá montar a aplicação e instalar as dependências usando o arquivo
-   `Dockerfile.unit`.
+   `Dockerfile.unit`. Esse Dockerfile define a variável `HF_HOME` como
+   `/tmp/huggingface` para que o usuário "unit" tenha permissão de escrita no
+   cache do Hugging Face e evite erros ao baixar modelos.
 
 ## Uso
 

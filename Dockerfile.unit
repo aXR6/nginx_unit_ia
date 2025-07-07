@@ -1,3 +1,8 @@
 FROM nginx/unit:1.29.1-python3.11
+
+# Use a writable location for HuggingFace caches to avoid permission errors
+ENV HF_HOME=/tmp/huggingface
+RUN mkdir -p "$HF_HOME" && chown unit:unit "$HF_HOME"
+
 COPY requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
