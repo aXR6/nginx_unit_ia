@@ -14,6 +14,8 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
 - Barra superior exibe informações resumidas dos modelos carregados.
 - Embeddings e classificação/anomalias realizados pelos modelos definidos
   nas variáveis `SEMANTIC_MODEL` e `ANOMALY_MODEL` do arquivo `.env`.
+- Suporte a modelos com implementações personalizadas do Hugging Face via
+  `trust_remote_code` quando especificados em `.env`.
 - Registro opcional em banco PostgreSQL com esquema definido em `schema.sql`.
 - Integração opcional com OpenSearch para indexar logs e IPs bloqueados.
 - O tipo de ataque é classificado utilizando o(s) modelo(s) definido(s)

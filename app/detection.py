@@ -37,10 +37,22 @@ class Detector:
         logger.info("Carregando modelos em %s", device)
         self.device = torch.device(device)
 
-        self.severity_tokenizer = AutoTokenizer.from_pretrained(config.SEVERITY_MODEL)
-        self.severity_model = AutoModelForSequenceClassification.from_pretrained(config.SEVERITY_MODEL).to(self.device)
-        self.anomaly_tokenizer = AutoTokenizer.from_pretrained(config.ANOMALY_MODEL)
-        self.anomaly_model = AutoModelForSequenceClassification.from_pretrained(config.ANOMALY_MODEL).to(self.device)
+        self.severity_tokenizer = AutoTokenizer.from_pretrained(
+            config.SEVERITY_MODEL,
+            trust_remote_code=True,
+        )
+        self.severity_model = AutoModelForSequenceClassification.from_pretrained(
+            config.SEVERITY_MODEL,
+            trust_remote_code=True,
+        ).to(self.device)
+        self.anomaly_tokenizer = AutoTokenizer.from_pretrained(
+            config.ANOMALY_MODEL,
+            trust_remote_code=True,
+        )
+        self.anomaly_model = AutoModelForSequenceClassification.from_pretrained(
+            config.ANOMALY_MODEL,
+            trust_remote_code=True,
+        ).to(self.device)
         # O primeiro item de ``NIDS_MODELS`` é tratado como modelo principal
         # para determinar o tipo de ataque das requisições. Ele pode ser qualquer
         # classificador compatível com Transformers.
@@ -61,8 +73,14 @@ class Detector:
         self.primary = None
         self.primary_tok = None
         try:
-            self.primary_tok = AutoTokenizer.from_pretrained(self.primary_name)
-            self.primary = AutoModelForSequenceClassification.from_pretrained(self.primary_name).to(self.device)
+            self.primary_tok = AutoTokenizer.from_pretrained(
+                self.primary_name,
+                trust_remote_code=True,
+            )
+            self.primary = AutoModelForSequenceClassification.from_pretrained(
+                self.primary_name,
+                trust_remote_code=True,
+            ).to(self.device)
         except OSError:
             base_name = config.NIDS_BASE_MODEL or "distilbert-base-uncased"
             logger.info(
@@ -70,14 +88,26 @@ class Detector:
                 self.primary_name,
                 base_name,
             )
-            self.primary_tok = AutoTokenizer.from_pretrained(base_name)
-            base = AutoModelForSequenceClassification.from_pretrained(base_name)
+            self.primary_tok = AutoTokenizer.from_pretrained(
+                base_name,
+                trust_remote_code=True,
+            )
+            base = AutoModelForSequenceClassification.from_pretrained(
+                base_name,
+                trust_remote_code=True,
+            )
             self.primary = PeftModel.from_pretrained(base, self.primary_name).to(self.device)
 
         for model_name in config.NIDS_MODELS[1:]:
             try:
-                tok = AutoTokenizer.from_pretrained(model_name)
-                mdl = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
+                tok = AutoTokenizer.from_pretrained(
+                    model_name,
+                    trust_remote_code=True,
+                )
+                mdl = AutoModelForSequenceClassification.from_pretrained(
+                    model_name,
+                    trust_remote_code=True,
+                ).to(self.device)
             except OSError:
                 base_name = config.NIDS_BASE_MODEL or "distilbert-base-uncased"
                 logger.info(
@@ -85,8 +115,14 @@ class Detector:
                     model_name,
                     base_name,
                 )
-                tok = AutoTokenizer.from_pretrained(base_name)
-                base = AutoModelForSequenceClassification.from_pretrained(base_name)
+                tok = AutoTokenizer.from_pretrained(
+                    base_name,
+                    trust_remote_code=True,
+                )
+                base = AutoModelForSequenceClassification.from_pretrained(
+                    base_name,
+                    trust_remote_code=True,
+                )
                 mdl = PeftModel.from_pretrained(base, model_name).to(self.device)
             self.nids_models.append((model_name, tok, mdl))
         self.semantic_model = SentenceTransformer(config.SEMANTIC_MODEL, device=str(self.device))

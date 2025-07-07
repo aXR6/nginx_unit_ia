@@ -17,9 +17,15 @@ def download_models() -> None:
     ]
     for model_name, is_classifier in models:
         try:
-            AutoTokenizer.from_pretrained(model_name)
+            AutoTokenizer.from_pretrained(
+                model_name,
+                trust_remote_code=True,
+            )
             if is_classifier:
-                AutoModelForSequenceClassification.from_pretrained(model_name)
+                AutoModelForSequenceClassification.from_pretrained(
+                    model_name,
+                    trust_remote_code=True,
+                )
         except Exception as exc:
             logger.error("Erro ao baixar %s: %s", model_name, exc)
     try:
