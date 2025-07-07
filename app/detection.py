@@ -43,37 +43,37 @@ class Detector:
         self.severity_model = AutoModelForSequenceClassification.from_pretrained(config.SEVERITY_MODEL).to(self.device)
         self.anomaly_tokenizer = AutoTokenizer.from_pretrained(config.ANOMALY_MODEL)
         self.anomaly_model = AutoModelForSequenceClassification.from_pretrained(config.ANOMALY_MODEL).to(self.device)
-        # Sniffer.AI is mandatory and always loaded. Other NIDS models are
-        # optional and listed in ``config.NIDS_MODELS``.  ``self.sniffer`` holds
-        # the classifier used to define the attack type while ``self.nids_models``
-        # stores additional models for reference.
-        self.sniffer = None
-        try:
-            self.sniffer = HFTextSniffer("SilverDragon9/Sniffer.AI")
-        except Exception as exc:
-            logger.error("Falha ao carregar Sniffer.AI via Transformers: %s", exc)
-            try:
-                self.sniffer = Sniffer()
-            except Exception as exc2:
-                logger.error("Falha ao carregar Sniffer.AI (legacy): %s", exc2)
-
+        # O primeiro item de ``NIDS_MODELS`` é tratado como modelo principal
+        # para determinar o tipo de ataque das requisições. Ele pode ser qualquer
+        # classificador compatível com Transformers ou o Sniffer.AI legado.
         self.nids_models = []
-        for model_name in config.NIDS_MODELS:
-            if model_name == "SilverDragon9/Sniffer.AI":
-                continue
+        self.primary_name = config.NIDS_MODELS[0] if config.NIDS_MODELS else "SilverDragon9/Sniffer.AI"
+        self.primary = None
+        self.primary_tok = None
+        if self.primary_name == "SilverDragon9/Sniffer.AI":
             try:
-                tok = AutoTokenizer.from_pretrained(model_name)
-                mdl = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
+                self.primary = HFTextSniffer(self.primary_name)
+            except Exception as exc:
+                logger.error("Falha ao carregar Sniffer.AI via Transformers: %s", exc)
+                try:
+                    self.primary = Sniffer()
+                except Exception as exc2:
+                    logger.error("Falha ao carregar Sniffer.AI (legacy): %s", exc2)
+        else:
+            try:
+                self.primary_tok = AutoTokenizer.from_pretrained(self.primary_name)
+                self.primary = AutoModelForSequenceClassification.from_pretrained(self.primary_name).to(self.device)
             except OSError:
                 logger.info(
                     "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
-                    model_name,
+                    self.primary_name,
                     config.NIDS_BASE_MODEL,
                 )
-                tok = AutoTokenizer.from_pretrained(config.NIDS_BASE_MODEL)
+                self.primary_tok = AutoTokenizer.from_pretrained(config.NIDS_BASE_MODEL)
                 base = AutoModelForSequenceClassification.from_pretrained(config.NIDS_BASE_MODEL)
-                mdl = PeftModel.from_pretrained(base, model_name).to(self.device)
-            self.nids_models.append((model_name, tok, mdl))
+                self.primary = PeftModel.from_pretrained(base, self.primary_name).to(self.device)
+
+        for model_name in config.NIDS_MODELS[1:]:
             try:
                 tok = AutoTokenizer.from_pretrained(model_name)
                 mdl = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
@@ -137,14 +137,27 @@ class Detector:
 
         nids_details = []
 
-        sniffer_label, sniffer_score = "Normal", [1.0]
-        if self.sniffer is not None:
-            result = self.sniffer.predict_from_text(text)
+        primary_label, primary_score = "Normal", [1.0]
+        if hasattr(self.primary, "predict_from_text"):
+            result = self.primary.predict_from_text(text)
             if isinstance(result, tuple):
-                sniffer_label, sniffer_score = result
+                primary_label, primary_score = result
             else:
-                sniffer_label = result
-        nids_details.append({'label': sniffer_label, 'score': sniffer_score, 'model': 'SilverDragon9/Sniffer.AI'})
+                primary_label = result
+        elif self.primary is not None and self.primary_tok is not None:
+            inputs = self.primary_tok(
+                text,
+                return_tensors="pt",
+                truncation=True,
+                max_length=self.primary_tok.model_max_length,
+            )
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            output = self.primary(**inputs)
+            probs = torch.softmax(output.logits, dim=-1)[0]
+            primary_score = probs.tolist()
+            label_idx = int(torch.argmax(probs).item())
+            primary_label = self.primary.config.id2label.get(label_idx, str(label_idx))
+        nids_details.append({'label': primary_label, 'score': primary_score, 'model': self.primary_name})
 
         for model_name, tok, mdl in self.nids_models:
             if tok is None and hasattr(mdl, "predict_from_text"):
@@ -187,9 +200,9 @@ class Detector:
                 'model': config.SEVERITY_MODEL,
             },
             'nids': {
-                'label': sniffer_label,
-                'score': sniffer_score,
-                'model': 'SilverDragon9/Sniffer.AI',
+                'label': primary_label,
+                'score': primary_score,
+                'model': self.primary_name,
                 'majority': majority_label,
                 'majority_score': majority_detail['score'],
                 'details': nids_details,
