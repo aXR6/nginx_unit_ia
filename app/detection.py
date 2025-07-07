@@ -15,6 +15,14 @@ ANOMALY_LABELS = {
     1: "anomaly",
 }
 
+# Manual label overrides for specific NIDS models lacking id2label metadata
+NIDS_LABEL_OVERRIDES = {
+    "maleke01/RoBERTa-WebAttack": {
+        0: "normal",
+        1: "webattack",
+    },
+}
+
 
 def calculate_intensity(sev_label: str, anomaly_scores: list, similarity: float) -> float:
     """Return a numeric attack intensity based on model results."""
@@ -195,6 +203,9 @@ class Detector:
             primary_score = probs.tolist()
             label_idx = int(torch.argmax(probs).item())
             primary_label = self.primary.config.id2label.get(label_idx, str(label_idx))
+            override = NIDS_LABEL_OVERRIDES.get(self.primary_name)
+            if override:
+                primary_label = override.get(label_idx, primary_label)
         nids_details.append({'label': primary_label, 'score': primary_score, 'model': self.primary_name})
 
         for model_name, tok, mdl in self.nids_models:
@@ -218,6 +229,9 @@ class Detector:
             score = probs.tolist()
             label_idx = int(torch.argmax(probs).item())
             label = mdl.config.id2label.get(label_idx, str(label_idx))
+            override = NIDS_LABEL_OVERRIDES.get(model_name)
+            if override:
+                label = override.get(label_idx, label)
             nids_details.append({'label': label, 'score': score, 'model': model_name})
 
         from collections import Counter
