@@ -5,9 +5,11 @@ import torch
 import logging
 from collections import deque
 from .sniffer_ai import Sniffer
+from .sniffer_ai.hf_sniffer import HFTextSniffer
+
+from . import config
 
 logger = logging.getLogger(__name__)
-from . import config
 
 # Default label mapping for anomaly model if config lacks id2label
 ANOMALY_LABELS = {
@@ -48,12 +50,22 @@ class Detector:
         for model_name in config.NIDS_MODELS:
             if model_name == "SilverDragon9/Sniffer.AI":
                 try:
-                    sniffer = Sniffer()
+                    sniffer = HFTextSniffer(model_name)
                     self.nids_models.append((model_name, None, sniffer))
                     continue
                 except Exception as exc:
-                    logger.error("Falha ao carregar Sniffer.AI: %s", exc)
-                    continue
+                    logger.error(
+                        "Falha ao carregar Sniffer.AI via Transformers: %s", exc
+                    )
+                    try:
+                        sniffer = Sniffer()
+                        self.nids_models.append((model_name, None, sniffer))
+                        continue
+                    except Exception as exc2:
+                        logger.error(
+                            "Falha ao carregar Sniffer.AI (legacy): %s", exc2
+                        )
+                        continue
             try:
                 tok = AutoTokenizer.from_pretrained(model_name)
                 mdl = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
@@ -118,8 +130,12 @@ class Detector:
         nids_details = []
         for model_name, tok, mdl in self.nids_models:
             if tok is None and hasattr(mdl, "predict_from_text"):
-                label = mdl.predict_from_text(text)
-                nids_details.append({'label': label, 'score': [1.0], 'model': model_name})
+                result = mdl.predict_from_text(text)
+                if isinstance(result, tuple):
+                    label, score = result
+                else:
+                    label, score = result, [1.0]
+                nids_details.append({'label': label, 'score': score, 'model': model_name})
                 continue
             inputs = tok(
                 text,
