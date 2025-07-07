@@ -34,7 +34,7 @@ NIDS_MODELS = [
     s.strip()
     for s in os.getenv(
         'NIDS_MODELS',
-        'SilverDragon9/Sniffer.AI,Dumi2025/log-anomaly-detection-model-roberta',
+        'maleke01/RoBERTa-WebAttack,SilverDragon9/Sniffer.AI,Dumi2025/log-anomaly-detection-model-roberta',
     ).split(',')
     if s.strip()
 ]
