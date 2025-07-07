@@ -96,17 +96,19 @@ O proxy também monitora a quantidade de requisições de cada IP e bloqueia aut
 
 ### Sniffer.AI em tempo real
 
-O IDS Sniffer.AI é opcional e seus modelos são baixados do Hugging Face na primeira
-execução. Ele aceita linhas de log no formato JSON ou `chave=valor` e pode ser
-utilizado para monitorar arquivos em tempo real:
+O IDS Sniffer.AI é opcional e pode ser utilizado em duas formas. A classe
+`HFTextSniffer` carrega o modelo do Hugging Face via Transformers enquanto a
+classe `Sniffer` utiliza os artefatos `.pkl` originais. Ambos aceitam linhas de
+log no formato JSON ou `chave=valor` e permitem monitorar arquivos em tempo
+real:
 
 ```python
-from app.sniffer_ai import Sniffer
+from app.sniffer_ai.hf_sniffer import HFTextSniffer
 
-sniffer = Sniffer()
+sniffer = HFTextSniffer()
 for line in sniffer.stream_file('/var/log/iot.log'):
-    label = sniffer.predict_from_text(line)
-    print(label)
+    label, scores = sniffer.predict_from_text(line)
+    print(label, scores)
 ```
 
 ### Whitelist

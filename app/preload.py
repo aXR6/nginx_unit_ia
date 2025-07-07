@@ -13,7 +13,7 @@ def download_models() -> None:
     models = [
         (config.SEVERITY_MODEL, True),
         (config.ANOMALY_MODEL, True),
-        *[(model, True) for model in config.NIDS_MODELS if model != "SilverDragon9/Sniffer.AI"],
+        *[(model, True) for model in config.NIDS_MODELS],
     ]
     for model_name, is_classifier in models:
         try:
@@ -22,6 +22,13 @@ def download_models() -> None:
                 AutoModelForSequenceClassification.from_pretrained(model_name)
         except Exception as exc:
             logger.error("Erro ao baixar %s: %s", model_name, exc)
+            if model_name == "SilverDragon9/Sniffer.AI":
+                try:
+                    from .sniffer_ai import Sniffer
+
+                    Sniffer()
+                except Exception as exc2:
+                    logger.error("Falha ao baixar modelos Sniffer.AI: %s", exc2)
     try:
         SentenceTransformer(config.SEMANTIC_MODEL)
     except Exception as exc:

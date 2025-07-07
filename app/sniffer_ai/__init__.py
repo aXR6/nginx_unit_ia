@@ -3,6 +3,8 @@ import json
 import time
 from typing import Dict, Iterable
 
+from .hf_sniffer import HFTextSniffer
+
 import pandas as pd
 import joblib
 import warnings
@@ -141,3 +143,6 @@ class Sniffer:
                     time.sleep(delay)
                     continue
                 yield line.strip()
+
+
+__all__ = ["Sniffer", "HFTextSniffer"]
