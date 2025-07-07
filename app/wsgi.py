@@ -63,6 +63,9 @@ def analyze_request() -> dict:
         ip_info = fetch_ip_info(ip)
     result = detector.analyze(full_text)
     attack_type = result['nids']['label']
+    majority = result['nids'].get('majority')
+    if attack_type.lower() == 'webattack' and majority:
+        attack_type = majority
     logger.info(
         "Detection result - severity: %s, anomaly: %s, nids: %s",
         result['severity']['label'],
@@ -182,7 +185,7 @@ def logs():
     page = int(request.args.get('page', '1'))
     logs = db.get_logs(limit=100, offset=(page - 1) * 100)
     for item in logs:
-        item['attack_type'] = item.get('attack_type') or item['nids']['label']
+        item['attack_type'] = item.get('attack_type') or item['nids'].get('majority', item['nids']['label'])
         item['category'] = item['nids'].get('majority', item['nids']['label'])
         item['intensity'] = detection.calculate_intensity(
             item['severity']['label'],
@@ -203,7 +206,7 @@ def log_detail(log_id: int):
     log = db.get_log(log_id)
     if not log:
         return 'Log não encontrado', 404
-    log['attack_type'] = log.get('attack_type') or log['nids']['label']
+    log['attack_type'] = log.get('attack_type') or log['nids'].get('majority', log['nids']['label'])
     log['category'] = log['nids'].get('majority', log['nids']['label'])
     intensity = detection.calculate_intensity(
         log['severity']['label'],
@@ -247,7 +250,7 @@ def api_logs():
             'severity': log['severity'],
             'anomaly': log['anomaly'],
             'nids': log['nids'],
-            'attack_type': log.get('attack_type') or log['nids']['label'],
+            'attack_type': log.get('attack_type') or log['nids'].get('majority', log['nids']['label']),
             'category': log['nids'].get('majority', log['nids']['label']),
             'semantic': log.get('semantic'),
             'intensity': intensity,
