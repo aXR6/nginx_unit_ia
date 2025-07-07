@@ -2,7 +2,7 @@
 
 {% block content %}
 <div id="blocked-app">
-  <h1 class="display-5 mb-4 text-center">Lista de IPs Bloqueados</h1>
+  <h1 class="display-5 mb-4 text-center">Jaula de IPs Bloqueados</h1>
   <div class="card">
     <div class="card-body p-0">
       <div class="table-responsive">
@@ -13,6 +13,7 @@
               <th>Situação</th>
               <th>Motivo</th>
               <th>Data/Hora</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody id="blocked-body"></tbody>
@@ -38,6 +39,13 @@ function statusClass(status) {
     return status === 'blocked' ? 'status-blocked' : 'status-unblocked';
 }
 
+async function unblock(ip) {
+    if (!confirm(`Remover ${ip} da jaula?`)) return;
+    await fetch(`/api/unblock/${ip}`, {method: 'POST'});
+    blockedData = blockedData.filter(item => item.ip !== ip);
+    renderBlocked();
+}
+
 function renderBlocked() {
     const tbody = document.getElementById('blocked-body');
     tbody.innerHTML = '';
@@ -47,7 +55,11 @@ function renderBlocked() {
             <td>${item.ip}</td>
             <td class="${statusClass(item.status)}">${item.status}</td>
             <td>${item.reason || ''}</td>
-            <td>${item.blocked_at}</td>`;
+            <td>${item.blocked_at}</td>
+            <td>
+              <a href="/blocked/${item.ip}" class="btn btn-sm btn-info me-2">Ver</a>
+              <button class="btn btn-sm btn-danger" onclick="unblock('${item.ip}')">Excluir</button>
+            </td>`;
         tbody.appendChild(tr);
     }
     document.getElementById('blocked-page').textContent = blockedPage;

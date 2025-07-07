@@ -12,12 +12,11 @@
               <th>Data/Hora</th>
               <th>Origem</th>
               <th>IP</th>
-              <th>Ataque</th>
               <th>Intensidade</th>
+              <th>Ataque Detectado</th>
               <th>Conteúdo</th>
               <th>Severidade</th>
               <th>Anomalia</th>
-              <th>Categoria (NIDS)</th>
               <th>Fora do Padrão</th>
               <th>Modelos</th>
             </tr>
@@ -40,15 +39,6 @@
 let logsPage = {{ page }};
 let logsData = [];
 let logsEvt = null;
-
-function categoryColor(cat) {
-    let hash = 0;
-    for (let i = 0; i < cat.length; i++) {
-        hash = cat.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const hue = Math.abs(hash) % 360;
-    return `hsl(${hue},70%,80%)`;
-}
 
 function severityClass(label) {
     if (!label) return '';
@@ -79,12 +69,11 @@ function renderLogs() {
             <td>${log.created_at}</td>
             <td>${log.iface}</td>
             <td title="${ipInfo(log)}">${log.ip || ''}</td>
-            <td>${log.attack_type}</td>
             <td>${log.intensity}</td>
+            <td>${log.is_attack ? 'sim' : 'não'}</td>
             <td class="log-cell"><a href="/log/${log.id}" class="text-decoration-none">${abbreviate(log.log)}</a></td>
             <td class="${severityClass(log.severity.label)}" title="${log.severity.model}">${log.severity.label}</td>
             <td title="${log.anomaly.model}">${log.anomaly.label}</td>
-            <td><span class="category-label" style="background-color:${categoryColor(log.category)}" title="${log.nids.model}">${log.category}</span></td>
             <td>${log.semantic.outlier ? 'sim' : 'não'}</td>
             <td>${modelInfo(log)}</td>`;
         tbody.appendChild(tr);
