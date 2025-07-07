@@ -99,6 +99,7 @@ O proxy também monitora a quantidade de requisições de cada IP e bloqueia aut
 ### Modelos para tráfego HTTP
 
 Para detectar ataques em requisições web utilize o(s) modelo(s) configurado(s) em `NIDS_MODELS`.
+Um exemplo com ótimo desempenho é [`maleke01/RoBERTa-WebAttack`](https://huggingface.co/maleke01/RoBERTa-WebAttack).
 
 ### Whitelist
 
