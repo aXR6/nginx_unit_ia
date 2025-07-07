@@ -45,7 +45,17 @@ class Detector:
         # para determinar o tipo de ataque das requisições. Ele pode ser qualquer
         # classificador compatível com Transformers.
         self.nids_models = []
-        self.primary_name = config.NIDS_MODELS[0] if config.NIDS_MODELS else "Canstralian/CyberAttackDetection"
+        # Permite usar ``NIDS_MODEL`` para especificar o classificador principal.
+        # Caso esteja vazio, recorre ao primeiro item de ``NIDS_MODELS`` ou a um
+        # valor padrao. Isso evita que ``None`` seja passado para
+        # ``from_pretrained``.
+        if getattr(config, "NIDS_MODEL", None):
+            name = config.NIDS_MODEL.strip()
+        else:
+            name = ""
+        if not name:
+            name = config.NIDS_MODELS[0] if config.NIDS_MODELS else "Canstralian/CyberAttackDetection"
+        self.primary_name = name
         self.primary = None
         self.primary_tok = None
         try:
