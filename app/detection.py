@@ -62,13 +62,14 @@ class Detector:
             self.primary_tok = AutoTokenizer.from_pretrained(self.primary_name)
             self.primary = AutoModelForSequenceClassification.from_pretrained(self.primary_name).to(self.device)
         except OSError:
+            base_name = config.NIDS_BASE_MODEL or "distilbert-base-uncased"
             logger.info(
                 "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
                 self.primary_name,
-                config.NIDS_BASE_MODEL,
+                base_name,
             )
-            self.primary_tok = AutoTokenizer.from_pretrained(config.NIDS_BASE_MODEL)
-            base = AutoModelForSequenceClassification.from_pretrained(config.NIDS_BASE_MODEL)
+            self.primary_tok = AutoTokenizer.from_pretrained(base_name)
+            base = AutoModelForSequenceClassification.from_pretrained(base_name)
             self.primary = PeftModel.from_pretrained(base, self.primary_name).to(self.device)
 
         for model_name in config.NIDS_MODELS[1:]:
@@ -76,13 +77,14 @@ class Detector:
                 tok = AutoTokenizer.from_pretrained(model_name)
                 mdl = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
             except OSError:
+                base_name = config.NIDS_BASE_MODEL or "distilbert-base-uncased"
                 logger.info(
                     "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
                     model_name,
-                    config.NIDS_BASE_MODEL,
+                    base_name,
                 )
-                tok = AutoTokenizer.from_pretrained(config.NIDS_BASE_MODEL)
-                base = AutoModelForSequenceClassification.from_pretrained(config.NIDS_BASE_MODEL)
+                tok = AutoTokenizer.from_pretrained(base_name)
+                base = AutoModelForSequenceClassification.from_pretrained(base_name)
                 mdl = PeftModel.from_pretrained(base, model_name).to(self.device)
             self.nids_models.append((model_name, tok, mdl))
         self.semantic_model = SentenceTransformer(config.SEMANTIC_MODEL, device=str(self.device))
