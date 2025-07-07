@@ -25,6 +25,8 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
 ## Instalação
 
 1. Copie `.env.example` para `.env` e ajuste as variáveis conforme o ambiente.
+   Caso o arquivo `.env` não exista, a aplicação utilizará valores padrão para
+   os modelos, conforme definidos em `app/config.py`.
 2. Instale as dependências do Python:
    ```bash
    pip install -r requirements.txt
