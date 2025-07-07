@@ -4,8 +4,6 @@ from sentence_transformers import SentenceTransformer, util
 import torch
 import logging
 from collections import deque
-from .sniffer_ai import Sniffer
-from .sniffer_ai.hf_sniffer import HFTextSniffer
 
 from . import config
 
@@ -45,33 +43,23 @@ class Detector:
         self.anomaly_model = AutoModelForSequenceClassification.from_pretrained(config.ANOMALY_MODEL).to(self.device)
         # O primeiro item de ``NIDS_MODELS`` é tratado como modelo principal
         # para determinar o tipo de ataque das requisições. Ele pode ser qualquer
-        # classificador compatível com Transformers ou o Sniffer.AI legado.
+        # classificador compatível com Transformers.
         self.nids_models = []
-        self.primary_name = config.NIDS_MODELS[0] if config.NIDS_MODELS else "SilverDragon9/Sniffer.AI"
+        self.primary_name = config.NIDS_MODELS[0] if config.NIDS_MODELS else "Canstralian/CyberAttackDetection"
         self.primary = None
         self.primary_tok = None
-        if self.primary_name == "SilverDragon9/Sniffer.AI":
-            try:
-                self.primary = HFTextSniffer(self.primary_name)
-            except Exception as exc:
-                logger.error("Falha ao carregar Sniffer.AI via Transformers: %s", exc)
-                try:
-                    self.primary = Sniffer()
-                except Exception as exc2:
-                    logger.error("Falha ao carregar Sniffer.AI (legacy): %s", exc2)
-        else:
-            try:
-                self.primary_tok = AutoTokenizer.from_pretrained(self.primary_name)
-                self.primary = AutoModelForSequenceClassification.from_pretrained(self.primary_name).to(self.device)
-            except OSError:
-                logger.info(
-                    "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
-                    self.primary_name,
-                    config.NIDS_BASE_MODEL,
-                )
-                self.primary_tok = AutoTokenizer.from_pretrained(config.NIDS_BASE_MODEL)
-                base = AutoModelForSequenceClassification.from_pretrained(config.NIDS_BASE_MODEL)
-                self.primary = PeftModel.from_pretrained(base, self.primary_name).to(self.device)
+        try:
+            self.primary_tok = AutoTokenizer.from_pretrained(self.primary_name)
+            self.primary = AutoModelForSequenceClassification.from_pretrained(self.primary_name).to(self.device)
+        except OSError:
+            logger.info(
+                "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
+                self.primary_name,
+                config.NIDS_BASE_MODEL,
+            )
+            self.primary_tok = AutoTokenizer.from_pretrained(config.NIDS_BASE_MODEL)
+            base = AutoModelForSequenceClassification.from_pretrained(config.NIDS_BASE_MODEL)
+            self.primary = PeftModel.from_pretrained(base, self.primary_name).to(self.device)
 
         for model_name in config.NIDS_MODELS[1:]:
             try:

@@ -93,22 +93,13 @@ O painel web possui a página `http://localhost:8080/blocked` que exibe todos os
 Sempre que essa página é acessada, a lista é sincronizada com as regras atuais do UFW, garantindo que o banco reflita o estado real do firewall.
 O proxy também monitora a quantidade de requisições de cada IP e bloqueia automaticamente padrões que indiquem ataques de negação de serviço.
 
-### Sniffer.AI em tempo real
+### Modelos para tráfego HTTP
 
-O modelo Sniffer.AI continua disponível e pode ser utilizado de forma independente para logs de IoT. A classe
-`HFTextSniffer` carrega o modelo do Hugging Face via Transformers enquanto a
-classe `Sniffer` utiliza os artefatos `.pkl` originais. Ambos aceitam linhas de
-log no formato JSON ou `chave=valor` e permitem monitorar arquivos em tempo
-real:
-
-```python
-from app.sniffer_ai.hf_sniffer import HFTextSniffer
-
-sniffer = HFTextSniffer()
-for line in sniffer.stream_file('/var/log/iot.log'):
-    label, scores = sniffer.predict_from_text(line)
-    print(label, scores)
-```
+Esta versão utiliza modelos mais adequados para identificar ataques em requisições web.
+O classificador binário [`Canstralian/CyberAttackDetection`](https://huggingface.co/Canstralian/CyberAttackDetection)
+distingue tráfego legítimo de potenciais ataques, enquanto
+[`maheshj01/sql-injection-classifier`](https://huggingface.co/maheshj01/sql-injection-classifier)
+identifica consultas com SQL Injection. Ambos são definidos na variável `NIDS_MODELS` e são carregados automaticamente.
 
 ### Whitelist
 
