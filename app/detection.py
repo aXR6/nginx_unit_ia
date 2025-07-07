@@ -4,6 +4,8 @@ from sentence_transformers import SentenceTransformer, util
 import torch
 import logging
 from collections import deque
+from .sniffer_ai import Sniffer
+from .sniffer_ai.hf_sniffer import HFTextSniffer
 
 from . import config
 
@@ -80,33 +82,61 @@ class Detector:
         self.primary_name = name
         self.primary = None
         self.primary_tok = None
-        try:
-            self.primary_tok = AutoTokenizer.from_pretrained(
-                self.primary_name,
-                trust_remote_code=True,
-            )
-            self.primary = AutoModelForSequenceClassification.from_pretrained(
-                self.primary_name,
-                trust_remote_code=True,
-            ).to(self.device)
-        except (OSError, ValueError):
-            base_name = config.NIDS_BASE_MODEL or "distilbert-base-uncased"
-            logger.info(
-                "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
-                self.primary_name,
-                base_name,
-            )
-            self.primary_tok = AutoTokenizer.from_pretrained(
-                base_name,
-                trust_remote_code=True,
-            )
-            base = AutoModelForSequenceClassification.from_pretrained(
-                base_name,
-                trust_remote_code=True,
-            )
-            self.primary = PeftModel.from_pretrained(base, self.primary_name).to(self.device)
+        if self.primary_name == "SilverDragon9/Sniffer.AI":
+            try:
+                self.primary = HFTextSniffer(self.primary_name)
+            except Exception as exc:
+                logger.error("Falha ao carregar Sniffer.AI via Transformers: %s", exc)
+                try:
+                    self.primary = Sniffer()
+                except Exception as exc2:
+                    logger.error("Falha ao carregar Sniffer.AI (legacy): %s", exc2)
+        else:
+            try:
+                self.primary_tok = AutoTokenizer.from_pretrained(
+                    self.primary_name,
+                    trust_remote_code=True,
+                )
+                self.primary = AutoModelForSequenceClassification.from_pretrained(
+                    self.primary_name,
+                    trust_remote_code=True,
+                ).to(self.device)
+            except (OSError, ValueError):
+                base_name = config.NIDS_BASE_MODEL or "distilbert-base-uncased"
+                logger.info(
+                    "Modelo %s parece ser apenas um adaptador LoRA; carregando base %s",
+                    self.primary_name,
+                    base_name,
+                )
+                self.primary_tok = AutoTokenizer.from_pretrained(
+                    base_name,
+                    trust_remote_code=True,
+                )
+                base = AutoModelForSequenceClassification.from_pretrained(
+                    base_name,
+                    trust_remote_code=True,
+                )
+                self.primary = PeftModel.from_pretrained(base, self.primary_name).to(self.device)
 
         for model_name in config.NIDS_MODELS[1:]:
+            if model_name == "SilverDragon9/Sniffer.AI":
+                try:
+                    sniffer = HFTextSniffer(model_name)
+                    self.nids_models.append((model_name, None, sniffer))
+                    continue
+                except Exception as exc:
+                    logger.error(
+                        "Falha ao carregar Sniffer.AI via Transformers: %s", exc
+                    )
+                    try:
+                        sniffer = Sniffer()
+                        self.nids_models.append((model_name, None, sniffer))
+                        continue
+                    except Exception as exc2:
+                        logger.error(
+                            "Falha ao carregar Sniffer.AI (legacy): %s", exc2
+                        )
+                        continue
             try:
                 tok = AutoTokenizer.from_pretrained(
                     model_name,
