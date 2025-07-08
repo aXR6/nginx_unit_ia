@@ -33,13 +33,19 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
   ```
    O arquivo já inclui `opensearch-py` na versão 2.x para manter compatibilidade
    com o OpenSearch 2.
-3. Utilize o **ipinfo-cli** em um contêiner Docker para consultar dados de IPs:
+3. Utilize o **ipinfo-cli** em um contêiner Docker para consultar dados de IPs.
+  Defina o token em `IPINFO_TOKEN` e, opcionalmente, especifique a base
+  `IPINFO_MMDB` quando possuir o arquivo offline `ipinfo_lite.mmdb`:
   ```bash
   docker run --rm -it ipinfo/ipinfo:3.3.1
   ```
   Para salvar a configuração do CLI, monte um volume local:
   ```bash
   docker run --rm -it -v "$PWD/ipinfo:/root/.config/ipinfo" ipinfo/ipinfo:3.3.1
+  ```
+  Exemplo direto de consulta via API:
+  ```bash
+  curl "https://api.ipinfo.io/lite/8.8.8.8?token=71c4a89dd05d28"
   ```
 4. (Opcional) Suba o contêiner do Nginx Unit e da aplicação de exemplo:
    ```bash
