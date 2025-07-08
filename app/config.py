@@ -40,6 +40,10 @@ WEB_PANEL_PORT = int(os.getenv('WEB_PANEL_PORT', '8080'))
 UNIT_PORT = int(os.getenv('UNIT_PORT', '8090'))
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://hello:8000')
 LOG_FILE = os.getenv('LOG_FILE', 'app.log')
+# Ipinfo configuration
+IPINFO_TOKEN = os.getenv('IPINFO_TOKEN')
+IPINFO_MMDB = os.getenv('IPINFO_MMDB', os.path.join(os.path.dirname(os.path.dirname(__file__)), 'mmdb', 'ipinfo_lite.mmdb'))
+IPINFO_CONFIG_DIR = os.getenv('IPINFO_CONFIG_DIR')
 
 # If ``LOG_FILE`` is a relative path, place it inside the application
 # directory so the Unit process has permission to write the file. When the

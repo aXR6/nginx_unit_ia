@@ -11,3 +11,4 @@ debug.log
 
 # Models
 models/
+mmdb/ipinfo_lite.mmdb
