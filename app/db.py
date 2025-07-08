@@ -52,16 +52,16 @@ def save_log(interface, data, severity, anomaly, nids, semantic=None, ip=None, i
         return row['id'], row['created_at']
 
 
-def save_blocked_ip(ip, reason, status="blocked"):
+def save_blocked_ip(ip, reason, status="blocked", ip_info=None):
     if conn is None:
         return
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
-            INSERT INTO blocked_ips (ip, reason, status)
-            VALUES (%s, %s, %s)
+            INSERT INTO blocked_ips (ip, reason, ip_info, status)
+            VALUES (%s, %s, %s, %s)
             """,
-            (ip, reason, status),
+            (ip, reason, Json(ip_info) if ip_info is not None else None, status),
         )
 
 

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS blocked_ips (
     id SERIAL PRIMARY KEY,
     ip TEXT NOT NULL,
     reason TEXT,
+    ip_info JSONB,
     status TEXT NOT NULL DEFAULT 'blocked',
     blocked_at TIMESTAMPTZ DEFAULT NOW()
 );
