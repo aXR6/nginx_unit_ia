@@ -92,6 +92,8 @@ Defina `POSTGRES_HOST` e as demais variáveis de conexão para ativar o uso de P
 
 Além disso, é possível enviar os registros para um cluster OpenSearch (versão comunidade). Configure `ES_HOST` com a URL do servidor e, opcionalmente, `ES_USER`/`ES_PASSWORD` caso a autenticação esteja habilitada. Os documentos são indexados nos índices `logs` e `blocked_ips` para facilitar buscas e visualizações via Kibana ou ferramentas compatíveis.
 
+Os registros são gravados em tabelas distintas conforme a classificação realizada pelos modelos de linguagem. Requisições identificadas como ataque ficam em `threat_logs`, enquanto as demais são armazenadas em `common_logs`.
+
 ## Pentest e testes
 
 A pasta `pentest` inclui scripts de verificação e testes de ataque:
