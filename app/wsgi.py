@@ -218,6 +218,11 @@ def log_detail(log_id: int):
         log['anomaly']['score'],
         log.get('semantic', {}).get('similarity', 1.0),
     )
+    if log.get('ip') and not log.get('ip_info'):
+        from .ipinfo import fetch_ip_info
+        ip_info = fetch_ip_info(log['ip'])
+        if ip_info:
+            log['ip_info'] = ip_info
     return render_template('log_detail.html', title='Detalhes do Log', log=log, intensity=intensity)
 
 
