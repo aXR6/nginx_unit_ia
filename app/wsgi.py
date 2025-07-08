@@ -135,18 +135,20 @@ def analyze_request() -> dict:
         if len(dq) > DOS_THRESHOLD:
             if firewall.block_ip(ip):
                 logger.warning("IP %s blocked due to DoS detection", ip)
-                db.save_blocked_ip(ip, 'dos')
+                db.save_blocked_ip(ip, 'dos', ip_info=ip_info)
                 events.notify_blocked({
                     'ip': ip,
                     'reason': 'dos',
                     'status': 'blocked',
                     'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+                    ,'ip_info': ip_info,
                 })
                 es.index_blocked_ip({
                     'ip': ip,
                     'reason': 'dos',
                     'status': 'blocked',
-                    'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+                    'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'ip_info': ip_info,
                 })
                 return {'blocked': True}
 
@@ -160,18 +162,20 @@ def analyze_request() -> dict:
             if firewall.block_ip(ip):
                 reason = f"{result['anomaly']['label']} / {result['severity']['label']}"
                 logger.warning("IP %s blocked: %s", ip, reason)
-                db.save_blocked_ip(ip, reason)
+                db.save_blocked_ip(ip, reason, ip_info=ip_info)
                 events.notify_blocked({
                     'ip': ip,
                     'reason': reason,
                     'status': 'blocked',
-                    'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+                    'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'ip_info': ip_info,
                 })
                 es.index_blocked_ip({
                     'ip': ip,
                     'reason': reason,
                     'status': 'blocked',
-                    'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+                    'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'ip_info': ip_info,
                 })
                 return {'blocked': True}
     return result
@@ -237,8 +241,10 @@ def blocked_detail(ip: str):
     if not item:
         return 'IP não encontrado', 404
     logs = db.get_logs_by_ip(ip)
-    from .ipinfo import fetch_ip_info
-    ip_info = fetch_ip_info(ip)
+    ip_info = item.get('ip_info')
+    if not ip_info:
+        from .ipinfo import fetch_ip_info
+        ip_info = fetch_ip_info(ip)
     models = {
         'severity': config.SEVERITY_MODEL,
         'anomaly': config.ANOMALY_MODEL,
@@ -360,6 +366,7 @@ def api_blocked():
             'reason': item['reason'],
             'status': item['status'],
             'blocked_at': str(item['blocked_at']),
+            'ip_info': item.get('ip_info'),
         }
         for item in blocked
     ]

@@ -129,19 +129,23 @@ def sync_blocked_ips_with_ufw() -> set:
 
     # insert new blocked IPs
     for ip in ufw_ips - current_blocked:
-        db.save_blocked_ip(ip, "ufw", "blocked")
+        from .ipinfo import fetch_ip_info
+        ip_info = fetch_ip_info(ip)
+        db.save_blocked_ip(ip, "ufw", "blocked", ip_info=ip_info)
         events.notify_blocked({
             'ip': ip,
             'reason': 'ufw',
             'status': 'blocked',
-            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+            'ip_info': ip_info,
         })
         from . import es
         es.index_blocked_ip({
             'ip': ip,
             'reason': 'ufw',
             'status': 'blocked',
-            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S')
+            'blocked_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+            'ip_info': ip_info,
         })
         logger.info("Recorded blocked IP from UFW: %s", ip)
 

@@ -75,6 +75,7 @@ O proxy escutará na porta configurada em `UNIT_PORT` e encaminhará as requisi�
 ### Firewall
 
 Quando uma requisição é classificada como perigosa ou excede o limiar de negação de serviço, o IP de origem é bloqueado no UFW **apenas para a porta configurada em `UNIT_BACKEND_PORT`** e gravado no banco (se configurado). Os dados também ficam salvos em arquivo no caminho definido por `LOG_FILE`.
+Ao bloquear um IP, a aplicação também consulta o serviço **ipinfo** (ou base `mmdb`) para coletar detalhes de geolocalização e armazena essas informações na tabela `blocked_ips` junto com o motivo do bloqueio.
 
 ### Configurações de bloqueio
 
