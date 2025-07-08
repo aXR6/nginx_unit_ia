@@ -198,7 +198,7 @@ def logs():
             item['anomaly']['score'],
             item.get('semantic', {}).get('similarity', 1.0),
         )
-        if not item['is_attack']:
+        if item['is_attack']:
             filtered.append(item)
     models = {
         'severity': config.SEVERITY_MODEL,
@@ -222,7 +222,7 @@ def common_logs():
             item['anomaly']['score'],
             item.get('semantic', {}).get('similarity', 1.0),
         )
-        if item['is_attack']:
+        if not item['is_attack']:
             filtered.append(item)
     models = {
         'severity': config.SEVERITY_MODEL,
