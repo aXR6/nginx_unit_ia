@@ -1,3 +1,8 @@
+import os
+
+# Hide verbose TensorFlow logs before any potential import
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
 import threading
 from werkzeug.serving import make_server
 import torch
