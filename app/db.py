@@ -7,14 +7,18 @@ from . import config
 
 conn = None
 if config.POSTGRES_HOST:
-    conn = psycopg2.connect(
-        dbname=config.POSTGRES_DB,
-        user=config.POSTGRES_USER,
-        password=config.POSTGRES_PASSWORD,
-        host=config.POSTGRES_HOST,
-        port=config.POSTGRES_PORT,
-    )
-    conn.autocommit = True
+    try:
+        conn = psycopg2.connect(
+            dbname=config.POSTGRES_DB,
+            user=config.POSTGRES_USER,
+            password=config.POSTGRES_PASSWORD,
+            host=config.POSTGRES_HOST,
+            port=config.POSTGRES_PORT,
+        )
+    except Exception:
+        conn = None
+    if conn is not None:
+        conn.autocommit = True
 
 SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schema.sql"
 
