@@ -33,11 +33,14 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
   ```
    O arquivo já inclui `opensearch-py` na versão 2.x para manter compatibilidade
    com o OpenSearch 2.
-3. Instale o cliente da IPinfo para coleta de dados de IPs:
-   ```bash
-   curl -LO https://github.com/ipinfo/cli/releases/download/ipinfo-3.3.1/ipinfo_3.3.1_linux_$(uname -m).deb
-   sudo dpkg -i ipinfo_3.3.1_linux_$(uname -m).deb
-   ```
+3. Utilize o **ipinfo-cli** em um contêiner Docker para consultar dados de IPs:
+  ```bash
+  docker run --rm -it ipinfo/ipinfo:3.3.1
+  ```
+  Para salvar a configuração do CLI, monte um volume local:
+  ```bash
+  docker run --rm -it -v "$PWD/ipinfo:/root/.config/ipinfo" ipinfo/ipinfo:3.3.1
+  ```
 4. (Opcional) Suba o contêiner do Nginx Unit e da aplicação de exemplo:
    ```bash
    docker-compose up -d --build
