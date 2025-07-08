@@ -189,6 +189,7 @@ def index():
 def logs():
     page = int(request.args.get('page', '1'))
     logs = db.get_logs(limit=100, offset=(page - 1) * 100)
+    filtered = []
     for item in logs:
         item['category'] = item['nids'].get('majority', item['nids']['label'])
         item['is_attack'] = _is_attack(item['category'])
@@ -197,13 +198,39 @@ def logs():
             item['anomaly']['score'],
             item.get('semantic', {}).get('similarity', 1.0),
         )
+        if not item['is_attack']:
+            filtered.append(item)
     models = {
         'severity': config.SEVERITY_MODEL,
         'anomaly': config.ANOMALY_MODEL,
         'nids': ', '.join(config.NIDS_MODELS),
         'semantic': config.SEMANTIC_MODEL,
     }
-    return render_template('logs.html', title='Logs de Ameaças', logs=logs, page=page, models=models)
+    return render_template('logs.html', title='Logs de Ameaças', logs=filtered, page=page, models=models)
+
+
+@app.route('/common-logs')
+def common_logs():
+    page = int(request.args.get('page', '1'))
+    logs = db.get_logs(limit=100, offset=(page - 1) * 100)
+    filtered = []
+    for item in logs:
+        item['category'] = item['nids'].get('majority', item['nids']['label'])
+        item['is_attack'] = _is_attack(item['category'])
+        item['intensity'] = detection.calculate_intensity(
+            item['severity']['label'],
+            item['anomaly']['score'],
+            item.get('semantic', {}).get('similarity', 1.0),
+        )
+        if item['is_attack']:
+            filtered.append(item)
+    models = {
+        'severity': config.SEVERITY_MODEL,
+        'anomaly': config.ANOMALY_MODEL,
+        'nids': ', '.join(config.NIDS_MODELS),
+        'semantic': config.SEMANTIC_MODEL,
+    }
+    return render_template('logs.html', title='Logs Comuns', logs=filtered, page=page, models=models)
 
 
 @app.route('/log/<int:log_id>')
