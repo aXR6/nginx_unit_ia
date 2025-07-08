@@ -8,6 +8,16 @@
     <p><strong>Data/Hora:</strong> {{ log.created_at }}</p>
     <p><strong>Origem:</strong> {{ log.iface }}</p>
     <p><strong>IP de Origem:</strong> {{ log.ip }}</p>
+    {% if log.ip_info %}
+    <div class="mt-3">
+      <h5>Informações do IP</h5>
+      <ul>
+        {% for key, value in log.ip_info.items() %}
+        <li><strong>{{ key }}:</strong> {{ value }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
     <p><strong>Ataque Detectado:</strong> {{ 'Sim' if log.is_attack else 'Não' }}</p>
     <p><strong>Intensidade:</strong> {{ intensity }}</p>
     <pre class="mt-3">{{ log.log }}</pre>

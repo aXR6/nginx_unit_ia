@@ -8,6 +8,14 @@
     <p><strong>Status:</strong> {{ item.status }}</p>
     <p><strong>Motivo:</strong> {{ item.reason }}</p>
     <p><strong>Data/Hora:</strong> {{ item.blocked_at }}</p>
+    {% if ip_info %}
+    <h5 class="mt-4">Informações do IP</h5>
+    <ul>
+      {% for key, value in ip_info.items() %}
+      <li><strong>{{ key }}:</strong> {{ value }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
     <h5 class="mt-4">Logs Recentes</h5>
     {% if logs %}
     <ul>
@@ -21,6 +29,7 @@
     <form method="post" action="/unblock/{{ item.ip }}" class="mt-3">
       <button type="submit" class="btn btn-danger">Desbloquear IP</button>
     </form>
+    <p class="mt-3"><strong>Modelos Utilizados:</strong> S: {{ models.severity }} | A: {{ models.anomaly }} | N: {{ models.nids }}</p>
   </div>
 </div>
 {% endblock %}

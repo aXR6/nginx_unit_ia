@@ -237,7 +237,22 @@ def blocked_detail(ip: str):
     if not item:
         return 'IP não encontrado', 404
     logs = db.get_logs_by_ip(ip)
-    return render_template('blocked_detail.html', title='IP Bloqueado', item=item, logs=logs)
+    from .ipinfo import fetch_ip_info
+    ip_info = fetch_ip_info(ip)
+    models = {
+        'severity': config.SEVERITY_MODEL,
+        'anomaly': config.ANOMALY_MODEL,
+        'nids': ', '.join(config.NIDS_MODELS),
+        'semantic': config.SEMANTIC_MODEL,
+    }
+    return render_template(
+        'blocked_detail.html',
+        title='IP Bloqueado',
+        item=item,
+        logs=logs,
+        ip_info=ip_info,
+        models=models,
+    )
 
 
 @app.route('/unblock/<ip>', methods=['POST'])
