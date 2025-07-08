@@ -18,3 +18,4 @@ joblib
 opensearch-py>=2,<3
 tensorflow
 huggingface-hub
+pytest
