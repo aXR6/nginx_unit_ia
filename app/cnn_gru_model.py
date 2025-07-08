@@ -1,5 +1,12 @@
 import os
 from typing import Tuple
+
+# Reduce TensorFlow verbosity and avoid GPU initialization messages when
+# running on systems without the necessary CUDA libraries.  The environment
+# variables must be set before importing TensorFlow.
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
+
 from tensorflow.keras.models import load_model
 from sentence_transformers import SentenceTransformer
 from huggingface_hub import hf_hub_download
