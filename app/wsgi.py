@@ -203,7 +203,7 @@ def logs():
         'nids': ', '.join(config.NIDS_MODELS),
         'semantic': config.SEMANTIC_MODEL,
     }
-    return render_template('logs.html', title='Logs', logs=logs, page=page, models=models)
+    return render_template('logs.html', title='Logs de Ameaças', logs=logs, page=page, models=models)
 
 
 @app.route('/log/<int:log_id>')
@@ -237,7 +237,7 @@ def blocked():
         'nids': ', '.join(config.NIDS_MODELS),
         'semantic': config.SEMANTIC_MODEL,
     }
-    return render_template('blocked.html', title='IPs Bloqueados', blocked=blocked, page=page, models=models)
+    return render_template('blocked.html', title='Quarentena de IPs', blocked=blocked, page=page, models=models)
 
 
 @app.route('/blocked/<ip>')
@@ -258,7 +258,7 @@ def blocked_detail(ip: str):
     }
     return render_template(
         'blocked_detail.html',
-        title='IP Bloqueado',
+        title='IP Quarentenado',
         item=item,
         logs=logs,
         ip_info=ip_info,
