@@ -77,6 +77,7 @@ def analyze_request() -> dict:
         ip_info = fetch_ip_info(ip)
     result = detector.analyze(full_text)
     category = result["nids"].get("majority", result["nids"]["label"])
+    is_attack = str(result.get("ensemble", {}).get("label", "normal")).lower() != "normal"
     logger.info(
         "Detection result - severity: %s, anomaly: %s, nids: %s",
         result["severity"]["label"],
@@ -92,6 +93,7 @@ def analyze_request() -> dict:
         result["semantic"],
         ip=ip,
         ip_info=ip_info,
+        is_attack=is_attack,
     )
     created_at = time.strftime("%Y-%m-%d %H:%M:%S")
     log_id = None
@@ -113,7 +115,7 @@ def analyze_request() -> dict:
             "anomaly": result["anomaly"],
             "nids": result["nids"],
             "category": category,
-            "is_attack": _is_attack(category),
+            "is_attack": is_attack,
             "semantic": result["semantic"],
             "ensemble": result.get("ensemble"),
             "intensity": result["intensity"],
@@ -131,7 +133,7 @@ def analyze_request() -> dict:
             "anomaly": result["anomaly"],
             "nids": result["nids"],
             "category": category,
-            "is_attack": _is_attack(category),
+            "is_attack": is_attack,
             "semantic": result["semantic"],
             "ensemble": result.get("ensemble"),
             "intensity": result["intensity"],

@@ -92,6 +92,8 @@ O proxy combina o classificador `Dumi2025/log-anomaly-detection-model-roberta` c
 `YangYang-Research/web-attack-detection` usando uma média ponderada. Ajuste os
 pesos e o limiar pelas variáveis `ENSEMBLE_W_ROBERTA`, `ENSEMBLE_W_ATTACK` e
 `ENSEMBLE_THRESHOLD` no `.env`.
+O resultado desse ensemble define o campo `is_attack` salvo no banco de dados,
+distinguindo entre *Logs de Ameaças* e *Logs Comuns*.
 
 ## Banco de dados
 

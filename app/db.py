@@ -43,13 +43,28 @@ def init_db():
 
 
 def save_log(
-    interface, data, severity, anomaly, nids, semantic=None, ip=None, ip_info=None
+    interface,
+    data,
+    severity,
+    anomaly,
+    nids,
+    semantic=None,
+    ip=None,
+    ip_info=None,
+    *,
+    is_attack=None,
 ):
-    """Persist the log in the appropriate table based on attack classification."""
+    """Persist the log in the appropriate table based on attack classification.
+
+    The ``is_attack`` flag can be provided directly. When omitted, the value is
+    derived from the NIDS result as in previous versions for backward
+    compatibility.
+    """
     if conn is None:
         return None
 
-    is_attack = _is_attack_entry(nids)
+    if is_attack is None:
+        is_attack = _is_attack_entry(nids)
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
