@@ -28,9 +28,9 @@ detector = Detector()
 
 app = Flask(__name__)
 
-# Certain paths generate a lot of noise in the logs. They are still
-# analysed but only stored when flagged as anomalies.
-SKIP_NON_ANOMALY_PATHS = {"/favicon.ico", "/logs", "/common-logs"}
+# Paths that should be ignored unless flagged as anomalies.  Keeping the
+# constant for future use, but no paths are currently skipped.
+SKIP_NON_ANOMALY_PATHS: set[str] = set()
 
 db.init_db()
 
