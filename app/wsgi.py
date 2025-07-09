@@ -223,7 +223,6 @@ def logs():
             item["anomaly"]["score"],
             item.get("semantic", {}).get("similarity", 1.0),
         )
-    filtered = logs
     models = {
         "severity": config.SEVERITY_MODEL,
         "anomaly": config.ANOMALY_MODEL,
@@ -231,7 +230,7 @@ def logs():
         "semantic": config.SEMANTIC_MODEL,
     }
     return render_template(
-        "logs.html", title="Logs de Ameaças", logs=filtered, page=page, models=models
+        "logs.html", title="Logs de Ameaças", page=page, models=models, page_type="threat"
     )
 
 
@@ -247,7 +246,6 @@ def common_logs():
             item["anomaly"]["score"],
             item.get("semantic", {}).get("similarity", 1.0),
         )
-    filtered = logs
     models = {
         "severity": config.SEVERITY_MODEL,
         "anomaly": config.ANOMALY_MODEL,
@@ -255,7 +253,7 @@ def common_logs():
         "semantic": config.SEMANTIC_MODEL,
     }
     return render_template(
-        "logs.html", title="Logs Comuns", logs=filtered, page=page, models=models
+        "logs.html", title="Logs Comuns", page=page, models=models, page_type="common"
     )
 
 
@@ -379,7 +377,13 @@ def api_unblock(ip: str):
 @app.route("/api/logs")
 def api_logs():
     page = int(request.args.get("page", "1"))
-    logs = db.get_logs(limit=100, offset=(page - 1) * 100)
+    log_type = request.args.get("type", "all")
+    if log_type == "threat":
+        logs = db.get_threat_logs(limit=100, offset=(page - 1) * 100)
+    elif log_type == "common":
+        logs = db.get_common_logs(limit=100, offset=(page - 1) * 100)
+    else:
+        logs = db.get_logs(limit=100, offset=(page - 1) * 100)
     serialized = []
     for log in logs:
         intensity = detection.calculate_intensity(
@@ -410,11 +414,17 @@ def api_logs():
 
 @app.route("/stream/logs")
 def stream_logs():
+    log_type = request.args.get("type")
+
     def generator():
         q = events.register_log_listener()
         try:
             while True:
                 entry = q.get()
+                if log_type == "threat" and not entry.get("is_attack"):
+                    continue
+                if log_type == "common" and entry.get("is_attack"):
+                    continue
                 yield f"data: {json.dumps(entry)}\n\n"
         finally:
             events.unregister_log_listener(q)

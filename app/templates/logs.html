@@ -2,7 +2,7 @@
 
 {% block content %}
 <div id="logs-app">
-  <h1 class="display-5 mb-4 text-center">Logs de Ameaças</h1>
+  <h1 class="display-5 mb-4 text-center">{{ title }}</h1>
   <div class="card">
     <div class="card-body p-0">
       <div class="table-responsive">
@@ -39,6 +39,7 @@
 let logsPage = {{ page }};
 let logsData = [];
 let logsEvt = null;
+let logsType = '{{ page_type }}';
 
 function severityClass(label) {
     if (!label) return '';
@@ -84,13 +85,13 @@ function renderLogs() {
 
 async function fetchLogs(page) {
     if (page < 1) return;
-    const res = await fetch(`/api/logs?page=${page}`);
+    const res = await fetch(`/api/logs?page=${page}&type=${logsType}`);
     logsData = await res.json();
     logsPage = page;
     renderLogs();
     if (logsEvt) logsEvt.close();
     if (page === 1) {
-        logsEvt = new EventSource('/stream/logs');
+        logsEvt = new EventSource(`/stream/logs?type=${logsType}`);
         logsEvt.onmessage = (e) => {
             const log = JSON.parse(e.data);
             logsData.unshift(log);
