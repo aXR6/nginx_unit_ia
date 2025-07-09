@@ -280,6 +280,13 @@ class Detector:
         ensemble_label = (
             "anomaly" if ensemble_score >= config.ENSEMBLE_THRESHOLD else "normal"
         )
+        if (
+            config.ENSEMBLE_OVERRIDE_ANOMALY
+            and ensemble_label == "anomaly"
+            and str(anomaly_label).lower() in ("normal", "none")
+        ):
+            anomaly_label = "anomaly"
+            anomaly_score = [1 - ensemble_score, ensemble_score]
         intensity = calculate_intensity(severity_label, anomaly_score, similarity)
 
         return {

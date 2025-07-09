@@ -90,13 +90,17 @@ Os limiares usados para bloquear IPs podem ser ajustados por variáveis de ambie
 - `BLOCK_SEVERITY_LEVELS` &ndash; níveis de severidade que resultam em bloqueio imediato (padrão `error,high`).
 - `BLOCK_ANOMALY_THRESHOLD` &ndash; probabilidade mínima de anomalia para bloquear quando o evento também é considerado *outlier* semântico (padrão `0.5`).
 - `NIDS_BASE_MODEL` &ndash; modelo base a ser usado quando um item de `NIDS_MODELS` contém apenas adaptadores LoRA.
+- `ENSEMBLE_OVERRIDE_ANOMALY` &ndash; quando `true`, permite que o resultado do
+  ensemble substitua o rótulo do modelo de anomalia.
 
 ### Ensemble de modelos
 
 O proxy combina o classificador `Dumi2025/log-anomaly-detection-model-roberta` com
 `YangYang-Research/web-attack-detection` usando uma média ponderada. Ajuste os
 pesos e o limiar pelas variáveis `ENSEMBLE_W_ROBERTA`, `ENSEMBLE_W_ATTACK` e
-`ENSEMBLE_THRESHOLD` no `.env`.
+`ENSEMBLE_THRESHOLD` no `.env`. Defina `ENSEMBLE_OVERRIDE_ANOMALY` como `true`
+para que o resultado desse ensemble possa substituir o rótulo do modelo de
+anomalia quando indicar um ataque.
 O resultado desse ensemble define o campo `is_attack` salvo no banco de dados,
 distinguindo entre *Logs de Ameaças* e *Logs Comuns*.
 
