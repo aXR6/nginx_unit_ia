@@ -68,6 +68,9 @@ python -m app.menu
 
 O proxy escutará na porta configurada em `UNIT_PORT` e encaminhará as requisições para `BACKEND_URL`. Esse backend normalmente é o serviço do Nginx Unit exposto na porta `UNIT_BACKEND_PORT`. O painel estará disponível em `http://localhost:8080` (ou porta definida em `WEB_PANEL_PORT`).
 
+O redirecionamento das requisições utiliza agora o `httpx.AsyncClient` de forma
+assíncrona, permitindo menor latência ao encaminhar chamadas para o backend.
+
 ### Painel
 
 - `/logs` &ndash; exibe os registros em tempo real usando Server-Sent Events.
