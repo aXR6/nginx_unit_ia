@@ -6,7 +6,8 @@ from flask import (
     Response,
     stream_with_context,
 )
-import requests
+import httpx
+import asyncio
 import json
 import time
 from collections import defaultdict, deque
@@ -476,23 +477,28 @@ def api_blocked():
     return jsonify(serialized)
 
 
-def _forward(path: str):
+async def _forward_async(path: str):
     url = f"{BACKEND_URL}/{path}" if path else BACKEND_URL
     try:
-        resp = requests.request(
-            method=request.method,
-            url=url,
-            headers={k: v for k, v in request.headers if k.lower() != "host"},
-            params=request.args,
-            data=request.get_data(),
-            allow_redirects=False,
-            timeout=5,
-        )
+        async with httpx.AsyncClient() as client:
+            resp = await client.request(
+                method=request.method,
+                url=url,
+                headers={k: v for k, v in request.headers if k.lower() != "host"},
+                params=request.args,
+                content=request.get_data(),
+                follow_redirects=False,
+                timeout=5,
+            )
     except Exception as exc:
         return Response(f"Erro ao encaminhar: {exc}", status=502)
     excluded = {"content-encoding", "content-length", "transfer-encoding", "connection"}
     headers = [(k, v) for k, v in resp.headers.items() if k.lower() not in excluded]
     return Response(resp.content, resp.status_code, headers)
+
+
+def _forward(path: str):
+    return asyncio.run(_forward_async(path))
 
 
 @app.route("/<path:path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])

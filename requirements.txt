@@ -5,7 +5,7 @@ python-dotenv
 flask
 werkzeug
 torch
-requests
+httpx
 scikit-learn
 xgboost
 protobuf
