@@ -16,12 +16,26 @@ ES_PASSWORD = os.getenv('ES_PASSWORD')
 
 # Model identifiers are defined somente por variáveis de ambiente.
 # Consulte `.env.example` para valores recomendados.
-SEMANTIC_MODEL = os.getenv('SEMANTIC_MODEL')
-SEVERITY_MODEL = os.getenv('SEVERITY_MODEL')
-ANOMALY_MODEL = os.getenv('ANOMALY_MODEL')
+# Default models ensure the application works even without a local `.env` file
+SEMANTIC_MODEL = os.getenv(
+    'SEMANTIC_MODEL', 'sentence-transformers/all-MiniLM-L6-v2'
+)
+SEVERITY_MODEL = os.getenv(
+    'SEVERITY_MODEL', 'byviz/bylastic_classification_logs'
+)
+ANOMALY_MODEL = os.getenv(
+    'ANOMALY_MODEL', 'Dumi2025/log-anomaly-detection-model-roberta'
+)
 # Allow a list of NIDS models to be configured. Se ``NIDS_MODELS`` estiver
-# vazio, utiliza-se ``NIDS_MODEL`` (se definido) como primário.
-NIDS_MODELS = [s.strip() for s in os.getenv('NIDS_MODELS', '').split(',') if s.strip()]
+# vazio, utiliza-se ``NIDS_MODEL`` (se definido) como primário. O modelo de
+# referência padrão detecta ataques em tráfego web.
+NIDS_MODELS = [
+    s.strip()
+    for s in os.getenv(
+        'NIDS_MODELS', 'YangYang-Research/web-attack-detection'
+    ).split(',')
+    if s.strip()
+]
 
 # Backwards compatibility with the old ``NIDS_MODEL`` variable. The first model
 # in ``NIDS_MODELS`` is treated as the primary one.
