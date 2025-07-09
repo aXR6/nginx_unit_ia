@@ -21,6 +21,8 @@ Este projeto adiciona uma camada de segurança ao [Nginx Unit](https://unit.ngin
 - A categoria do tráfego é determinada pelo modelo configurado em `NIDS_MODELS`.
 - Script interativo (`python -m app.menu`) para iniciar/parar o proxy e o painel, além de selecionar CPU ou GPU para inferência.
 - Classificação de ataques realizada apenas por modelos de linguagem, sem regex.
+- Requisições para `/favicon.ico`, `/logs` e `/common-logs` só são salvas quando
+  classificadas como anomalias.
 
 ## Instalação
 
