@@ -53,6 +53,7 @@ BLOCK_ANOMALY_THRESHOLD = float(os.getenv('BLOCK_ANOMALY_THRESHOLD', '0.5'))
 ENSEMBLE_W_ROBERTA = float(os.getenv('ENSEMBLE_W_ROBERTA', '0.6'))
 ENSEMBLE_W_ATTACK = float(os.getenv('ENSEMBLE_W_ATTACK', '0.4'))
 ENSEMBLE_THRESHOLD = float(os.getenv('ENSEMBLE_THRESHOLD', '0.5'))
+ENSEMBLE_OVERRIDE_ANOMALY = os.getenv('ENSEMBLE_OVERRIDE_ANOMALY', 'true').lower() == 'true'
 
 DEVICE = os.getenv('DEVICE', 'cpu')
 WEB_PANEL_PORT = int(os.getenv('WEB_PANEL_PORT', '8080'))
