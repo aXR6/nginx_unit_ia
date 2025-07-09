@@ -385,6 +385,7 @@ def api_logs():
             log["anomaly"]["score"],
             log.get("semantic", {}).get("similarity", 1.0),
         )
+        category = log["nids"].get("majority", log["nids"]["label"])
         serialized.append(
             {
                 "id": log.get("id"),
@@ -396,10 +397,8 @@ def api_logs():
                 "severity": log["severity"],
                 "anomaly": log["anomaly"],
                 "nids": log["nids"],
-                "category": log["nids"].get("majority", log["nids"]["label"]),
-                "is_attack": _is_attack(
-                    log["nids"].get("majority", log["nids"]["label"])
-                ),
+                "category": category,
+                "is_attack": log.get("is_attack", _is_attack(category)),
                 "semantic": log.get("semantic"),
                 "intensity": intensity,
             }

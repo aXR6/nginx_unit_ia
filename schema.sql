@@ -8,34 +8,8 @@ CREATE TABLE IF NOT EXISTS logs (
     severity JSONB,
     anomaly JSONB,
     nids JSONB,
-    semantic JSONB
-);
-
--- Tabelas separadas para registros de ameacas e logs comuns
-CREATE TABLE IF NOT EXISTS threat_logs (
-    id SERIAL PRIMARY KEY,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    iface TEXT NOT NULL,
-    log TEXT NOT NULL,
-    ip TEXT,
-    ip_info JSONB,
-    severity JSONB,
-    anomaly JSONB,
-    nids JSONB,
-    semantic JSONB
-);
-
-CREATE TABLE IF NOT EXISTS common_logs (
-    id SERIAL PRIMARY KEY,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    iface TEXT NOT NULL,
-    log TEXT NOT NULL,
-    ip TEXT,
-    ip_info JSONB,
-    severity JSONB,
-    anomaly JSONB,
-    nids JSONB,
-    semantic JSONB
+    semantic JSONB,
+    is_attack BOOLEAN NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS blocked_ips (

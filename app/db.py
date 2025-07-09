@@ -49,12 +49,12 @@ def save_log(
     if conn is None:
         return None
 
-    table = "threat_logs" if _is_attack_entry(nids) else "common_logs"
+    is_attack = _is_attack_entry(nids)
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
-            f"""
-            INSERT INTO {table} (iface, log, ip, ip_info, severity, anomaly, nids, semantic)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            INSERT INTO logs (iface, log, ip, ip_info, severity, anomaly, nids, semantic, is_attack)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, created_at
             """,
             (
@@ -66,6 +66,7 @@ def save_log(
                 Json(anomaly),
                 Json(nids),
                 Json(semantic) if semantic is not None else None,
+                is_attack,
             ),
         )
         row = cur.fetchone()
@@ -90,13 +91,7 @@ def get_logs(limit=100, offset=0):
         return []
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
-            """
-            SELECT *, true AS is_attack FROM threat_logs
-            UNION ALL
-            SELECT *, false AS is_attack FROM common_logs
-            ORDER BY created_at DESC
-            LIMIT %s OFFSET %s
-            """,
+            "SELECT * FROM logs ORDER BY created_at DESC LIMIT %s OFFSET %s",
             (limit, offset),
         )
         return cur.fetchall()
@@ -107,13 +102,10 @@ def get_threat_logs(limit=100, offset=0):
         return []
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
-            "SELECT * FROM threat_logs ORDER BY created_at DESC LIMIT %s OFFSET %s",
+            "SELECT * FROM logs WHERE is_attack=true ORDER BY created_at DESC LIMIT %s OFFSET %s",
             (limit, offset),
         )
-        rows = cur.fetchall()
-        for r in rows:
-            r["is_attack"] = True
-        return rows
+        return cur.fetchall()
 
 
 def get_common_logs(limit=100, offset=0):
@@ -121,29 +113,18 @@ def get_common_logs(limit=100, offset=0):
         return []
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
-            "SELECT * FROM common_logs ORDER BY created_at DESC LIMIT %s OFFSET %s",
+            "SELECT * FROM logs WHERE is_attack=false ORDER BY created_at DESC LIMIT %s OFFSET %s",
             (limit, offset),
         )
-        rows = cur.fetchall()
-        for r in rows:
-            r["is_attack"] = False
-        return rows
+        return cur.fetchall()
 
 
 def get_log(log_id: int):
     if conn is None:
         return None
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
-        cur.execute("SELECT * FROM threat_logs WHERE id=%s", (log_id,))
-        row = cur.fetchone()
-        if row:
-            row["is_attack"] = True
-            return row
-        cur.execute("SELECT * FROM common_logs WHERE id=%s", (log_id,))
-        row = cur.fetchone()
-        if row:
-            row["is_attack"] = False
-        return row
+        cur.execute("SELECT * FROM logs WHERE id=%s", (log_id,))
+        return cur.fetchone()
 
 
 def get_blocked_ips(limit=100, offset=0):
@@ -178,14 +159,11 @@ def get_logs_by_ip(ip: str, limit: int = 20):
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
-            SELECT id, created_at, log, true AS is_attack
-            FROM threat_logs WHERE ip=%s
-            UNION ALL
-            SELECT id, created_at, log, false AS is_attack
-            FROM common_logs WHERE ip=%s
+            SELECT id, created_at, log, is_attack
+            FROM logs WHERE ip=%s
             ORDER BY created_at DESC LIMIT %s
             """,
-            (ip, ip, limit),
+            (ip, limit),
         )
         return cur.fetchall()
 
