@@ -27,6 +27,10 @@ detector = Detector()
 
 app = Flask(__name__)
 
+# Certain paths generate a lot of noise in the logs. They are still
+# analysed but only stored when flagged as anomalies.
+SKIP_NON_ANOMALY_PATHS = {"/favicon.ico", "/logs", "/common-logs"}
+
 db.init_db()
 
 
@@ -53,8 +57,7 @@ def _is_attack(label: str) -> bool:
 @app.before_request
 def _analyze():
     if (
-        request.path.startswith("/logs")
-        or request.path.startswith("/blocked")
+        request.path.startswith("/blocked")
         or request.path.startswith("/api/")
         or request.path.startswith("/stream/")
     ):
@@ -84,61 +87,70 @@ def analyze_request() -> dict:
         result["anomaly"]["label"],
         result["nids"]["label"],
     )
-    saved = db.save_log(
-        "unit",
-        full_text,
-        result["severity"],
-        result["anomaly"],
-        result["nids"],
-        result["semantic"],
-        ip=ip,
-        ip_info=ip_info,
-        is_attack=is_attack,
-    )
+
+    # Skip storing noisy paths unless an anomaly was detected
+    if (
+        request.method == "GET"
+        and request.path in SKIP_NON_ANOMALY_PATHS
+        and str(result["anomaly"]["label"]).lower() in ("normal", "none")
+    ):
+        saved = None
+    else:
+        saved = db.save_log(
+            "unit",
+            full_text,
+            result["severity"],
+            result["anomaly"],
+            result["nids"],
+            result["semantic"],
+            ip=ip,
+            ip_info=ip_info,
+            is_attack=is_attack,
+        )
     created_at = time.strftime("%Y-%m-%d %H:%M:%S")
     log_id = None
-    if saved:
+    if saved is not None:
         log_id, created_at_dt = saved
         if hasattr(created_at_dt, "strftime"):
             created_at = created_at_dt.strftime("%Y-%m-%d %H:%M:%S")
         else:
             created_at = str(created_at_dt)
-    events.notify_log(
-        {
-            "id": log_id,
-            "created_at": created_at,
-            "iface": "unit",
-            "log": full_text,
-            "ip": ip,
-            "ip_info": ip_info,
-            "severity": result["severity"],
-            "anomaly": result["anomaly"],
-            "nids": result["nids"],
-            "category": category,
-            "is_attack": is_attack,
-            "semantic": result["semantic"],
-            "ensemble": result.get("ensemble"),
-            "intensity": result["intensity"],
-        }
-    )
-    es.index_log(
-        {
-            "id": log_id,
-            "created_at": created_at,
-            "iface": "unit",
-            "log": full_text,
-            "ip": ip,
-            "ip_info": ip_info,
-            "severity": result["severity"],
-            "anomaly": result["anomaly"],
-            "nids": result["nids"],
-            "category": category,
-            "is_attack": is_attack,
-            "semantic": result["semantic"],
-            "ensemble": result.get("ensemble"),
-            "intensity": result["intensity"],
-        }
-    )
+        events.notify_log(
+            {
+                "id": log_id,
+                "created_at": created_at,
+                "iface": "unit",
+                "log": full_text,
+                "ip": ip,
+                "ip_info": ip_info,
+                "severity": result["severity"],
+                "anomaly": result["anomaly"],
+                "nids": result["nids"],
+                "category": category,
+                "is_attack": is_attack,
+                "semantic": result["semantic"],
+                "ensemble": result.get("ensemble"),
+                "intensity": result["intensity"],
+            }
+        )
+        es.index_log(
+            {
+                "id": log_id,
+                "created_at": created_at,
+                "iface": "unit",
+                "log": full_text,
+                "ip": ip,
+                "ip_info": ip_info,
+                "severity": result["severity"],
+                "anomaly": result["anomaly"],
+                "nids": result["nids"],
+                "category": category,
+                "is_attack": is_attack,
+                "semantic": result["semantic"],
+                "ensemble": result.get("ensemble"),
+                "intensity": result["intensity"],
+            }
+        )
     sev = str(result["severity"]["label"]).lower()
     anom = str(result["anomaly"]["label"]).lower()
     anom_score = max(result["anomaly"]["score"]) if result["anomaly"]["score"] else 0.0
