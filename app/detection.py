@@ -243,6 +243,22 @@ class Detector:
         label_counts = Counter(d['label'] for d in nids_details)
         majority_label = label_counts.most_common(1)[0][0]
         majority_detail = next(d for d in nids_details if d['label'] == majority_label)
+
+        anomaly_prob = float(anomaly_score[1]) if len(anomaly_score) > 1 else (
+            0.0 if str(anomaly_label).lower() in ("normal", "none") else 1.0
+        )
+        attack_prob = 0.0
+        if len(primary_score) > 1:
+            attack_prob = float(primary_score[1])
+        elif str(primary_label).lower() not in ("normal", "benign", "none"):
+            attack_prob = 1.0
+        ensemble_score = (
+            config.ENSEMBLE_W_ROBERTA * anomaly_prob
+            + config.ENSEMBLE_W_ATTACK * attack_prob
+        )
+        ensemble_label = (
+            "anomaly" if ensemble_score >= config.ENSEMBLE_THRESHOLD else "normal"
+        )
         intensity = calculate_intensity(severity_label, anomaly_score, similarity)
 
         return {
@@ -269,6 +285,12 @@ class Detector:
                 'similarity': similarity,
                 'outlier': outlier,
                 'model': config.SEMANTIC_MODEL,
+            },
+            'ensemble': {
+                'label': ensemble_label,
+                'score': ensemble_score,
+                'weights': [config.ENSEMBLE_W_ROBERTA, config.ENSEMBLE_W_ATTACK],
+                'threshold': config.ENSEMBLE_THRESHOLD,
             },
             'intensity': intensity,
         }

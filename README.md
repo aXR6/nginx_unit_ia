@@ -86,6 +86,13 @@ Os limiares usados para bloquear IPs podem ser ajustados por variáveis de ambie
 - `BLOCK_ANOMALY_THRESHOLD` &ndash; probabilidade mínima de anomalia para bloquear quando o evento também é considerado *outlier* semântico (padrão `0.5`).
 - `NIDS_BASE_MODEL` &ndash; modelo base a ser usado quando um item de `NIDS_MODELS` contém apenas adaptadores LoRA.
 
+### Ensemble de modelos
+
+O proxy combina o classificador `Dumi2025/log-anomaly-detection-model-roberta` com
+`YangYang-Research/web-attack-detection` usando uma média ponderada. Ajuste os
+pesos e o limiar pelas variáveis `ENSEMBLE_W_ROBERTA`, `ENSEMBLE_W_ATTACK` e
+`ENSEMBLE_THRESHOLD` no `.env`.
+
 ## Banco de dados
 
 Defina `POSTGRES_HOST` e as demais variáveis de conexão para ativar o uso de PostgreSQL. Caso contrário, o proxy funciona sem dependência de banco, apenas registrando em arquivo.

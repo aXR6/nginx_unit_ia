@@ -115,6 +115,7 @@ def analyze_request() -> dict:
             "category": category,
             "is_attack": _is_attack(category),
             "semantic": result["semantic"],
+            "ensemble": result.get("ensemble"),
             "intensity": result["intensity"],
         }
     )
@@ -132,6 +133,7 @@ def analyze_request() -> dict:
             "category": category,
             "is_attack": _is_attack(category),
             "semantic": result["semantic"],
+            "ensemble": result.get("ensemble"),
             "intensity": result["intensity"],
         }
     )

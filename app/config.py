@@ -35,6 +35,11 @@ SEMANTIC_THRESHOLD = float(os.getenv('SEMANTIC_THRESHOLD', '0.5'))
 BLOCK_SEVERITY_LEVELS = [s.strip().lower() for s in os.getenv('BLOCK_SEVERITY_LEVELS', 'error,high').split(',')]
 BLOCK_ANOMALY_THRESHOLD = float(os.getenv('BLOCK_ANOMALY_THRESHOLD', '0.5'))
 
+# Ensemble weights for combining anomaly and attack models
+ENSEMBLE_W_ROBERTA = float(os.getenv('ENSEMBLE_W_ROBERTA', '0.6'))
+ENSEMBLE_W_ATTACK = float(os.getenv('ENSEMBLE_W_ATTACK', '0.4'))
+ENSEMBLE_THRESHOLD = float(os.getenv('ENSEMBLE_THRESHOLD', '0.5'))
+
 DEVICE = os.getenv('DEVICE', 'cpu')
 WEB_PANEL_PORT = int(os.getenv('WEB_PANEL_PORT', '8080'))
 UNIT_PORT = int(os.getenv('UNIT_PORT', '8090'))
