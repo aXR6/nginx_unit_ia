@@ -95,7 +95,7 @@ Os limiares usados para bloquear IPs podem ser ajustados por variáveis de ambie
 
 ### Ensemble de modelos
 
-O proxy combina o classificador `Dumi2025/log-anomaly-detection-model-roberta` com
+O proxy combina o classificador `teoogherghi/Log-Analysis-Model-DistilBert` com
 `YangYang-Research/web-attack-detection` usando uma média ponderada. Ajuste os
 pesos e o limiar pelas variáveis `ENSEMBLE_W_ROBERTA`, `ENSEMBLE_W_ATTACK` e
 `ENSEMBLE_THRESHOLD` no `.env`. Defina `ENSEMBLE_OVERRIDE_ANOMALY` como `true`
