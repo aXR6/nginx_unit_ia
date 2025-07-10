@@ -276,10 +276,13 @@ class Detector:
         ensemble_label = (
             "anomaly" if ensemble_score >= config.ENSEMBLE_THRESHOLD else "normal"
         )
+
+        majority_attack = str(majority_label).lower() not in ("normal", "benign", "none")
+
         if (
             config.ENSEMBLE_OVERRIDE_ANOMALY
-            and ensemble_label == "anomaly"
             and str(anomaly_label).lower() in ("normal", "none")
+            and (ensemble_label == "anomaly" or majority_attack)
         ):
             anomaly_label = "anomaly"
             anomaly_score = [1 - ensemble_score, ensemble_score]
