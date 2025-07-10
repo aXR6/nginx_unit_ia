@@ -188,82 +188,78 @@ class Detector:
 
         nids_details = []
 
-        if str(anomaly_label).lower() in ("normal", "none"):
-            primary_label, primary_score = "normal", [1.0]
-            nids_details.append(
-                {"label": "normal", "score": [1.0], "model": self.primary_name}
+        primary_label, primary_score = "Normal", [1.0]
+        if hasattr(self.primary, "predict_from_text"):
+            result = self.primary.predict_from_text(text)
+            if isinstance(result, tuple):
+                primary_label, primary_score = result
+            else:
+                primary_label = result
+        elif self.primary is not None and self.primary_tok is not None:
+            inputs = self.primary_tok(
+                text,
+                return_tensors="pt",
+                truncation=True,
+                max_length=self.primary_tok.model_max_length,
             )
-            majority_label = "normal"
-            majority_detail = nids_details[0]
-        else:
-            primary_label, primary_score = "Normal", [1.0]
-            if hasattr(self.primary, "predict_from_text"):
-                result = self.primary.predict_from_text(text)
-                if isinstance(result, tuple):
-                    primary_label, primary_score = result
-                else:
-                    primary_label = result
-            elif self.primary is not None and self.primary_tok is not None:
-                inputs = self.primary_tok(
-                    text,
-                    return_tensors="pt",
-                    truncation=True,
-                    max_length=self.primary_tok.model_max_length,
-                )
-                inputs = {k: v.to(self.device) for k, v in inputs.items()}
-                output = self.primary(**inputs)
-                probs = torch.softmax(output.logits, dim=-1)[0]
-                primary_score = probs.tolist()
-                label_idx = int(torch.argmax(probs).item())
-                primary_label = self.primary.config.id2label.get(label_idx, str(label_idx))
-                override = NIDS_LABEL_OVERRIDES.get(self.primary_name)
-                if override:
-                    primary_label = override.get(label_idx, primary_label)
-            nids_details.append(
-                {
-                    "label": primary_label,
-                    "score": primary_score,
-                    "model": self.primary_name,
-                }
-            )
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            output = self.primary(**inputs)
+            probs = torch.softmax(output.logits, dim=-1)[0]
+            primary_score = probs.tolist()
+            label_idx = int(torch.argmax(probs).item())
+            primary_label = self.primary.config.id2label.get(label_idx, str(label_idx))
+            override = NIDS_LABEL_OVERRIDES.get(self.primary_name)
+            if override:
+                primary_label = override.get(label_idx, primary_label)
+        nids_details.append(
+            {
+                "label": primary_label,
+                "score": primary_score,
+                "model": self.primary_name,
+            }
+        )
 
-            for model_name, tok, mdl in self.nids_models:
-                if tok is None and hasattr(mdl, "predict_from_text"):
-                    result = mdl.predict_from_text(text)
-                    if isinstance(result, tuple):
-                        label, score = result
-                    else:
-                        label, score = result, [1.0]
-                    nids_details.append(
-                        {"label": label, "score": score, "model": model_name}
-                    )
-                    continue
-                inputs = tok(
-                    text,
-                    return_tensors="pt",
-                    truncation=True,
-                    max_length=tok.model_max_length,
-                )
-                inputs = {k: v.to(self.device) for k, v in inputs.items()}
-                output = mdl(**inputs)
-                probs = torch.softmax(output.logits, dim=-1)[0]
-                score = probs.tolist()
-                label_idx = int(torch.argmax(probs).item())
-                label = mdl.config.id2label.get(label_idx, str(label_idx))
-                override = NIDS_LABEL_OVERRIDES.get(model_name)
-                if override:
-                    label = override.get(label_idx, label)
+        for model_name, tok, mdl in self.nids_models:
+            if tok is None and hasattr(mdl, "predict_from_text"):
+                result = mdl.predict_from_text(text)
+                if isinstance(result, tuple):
+                    label, score = result
+                else:
+                    label, score = result, [1.0]
                 nids_details.append(
                     {"label": label, "score": score, "model": model_name}
                 )
+                continue
+            inputs = tok(
+                text,
+                return_tensors="pt",
+                truncation=True,
+                max_length=tok.model_max_length,
+            )
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            output = mdl(**inputs)
+            probs = torch.softmax(output.logits, dim=-1)[0]
+            score = probs.tolist()
+            label_idx = int(torch.argmax(probs).item())
+            label = mdl.config.id2label.get(label_idx, str(label_idx))
+            override = NIDS_LABEL_OVERRIDES.get(model_name)
+            if override:
+                label = override.get(label_idx, label)
+            nids_details.append(
+                {"label": label, "score": score, "model": model_name}
+            )
 
-            from collections import Counter
+        from collections import Counter
 
+        if nids_details:
             label_counts = Counter(d["label"] for d in nids_details)
             majority_label = label_counts.most_common(1)[0][0]
             majority_detail = next(
                 d for d in nids_details if d["label"] == majority_label
             )
+        else:
+            majority_label = "normal"
+            majority_detail = {"score": [1.0]}
 
         anomaly_prob = float(anomaly_score[1]) if len(anomaly_score) > 1 else (
             0.0 if str(anomaly_label).lower() in ("normal", "none") else 1.0
