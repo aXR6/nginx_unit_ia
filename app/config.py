@@ -24,7 +24,7 @@ SEVERITY_MODEL = os.getenv(
     'SEVERITY_MODEL', 'byviz/bylastic_classification_logs'
 )
 ANOMALY_MODEL = os.getenv(
-    'ANOMALY_MODEL', 'Dumi2025/log-anomaly-detection-model-roberta'
+    'ANOMALY_MODEL', 'teoogherghi/Log-Analysis-Model-DistilBert'
 )
 # Allow a list of NIDS models to be configured. Se ``NIDS_MODELS`` estiver
 # vazio, utiliza-se ``NIDS_MODEL`` (se definido) como primário. O modelo de
