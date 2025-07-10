@@ -81,7 +81,9 @@ def analyze_request() -> dict:
         ip_info = fetch_ip_info(ip)
     result = detector.analyze(full_text)
     category = result["nids"].get("majority", result["nids"]["label"])
-    is_attack = str(result.get("ensemble", {}).get("label", "normal")).lower() != "normal"
+    ensemble_label = str(result.get("ensemble", {}).get("label", "normal")).lower()
+    is_attack_ensemble = ensemble_label != "normal"
+    is_attack = is_attack_ensemble or _is_attack(category)
     logger.info(
         "Detection result - severity: %s, anomaly: %s, nids: %s",
         result["severity"]["label"],
