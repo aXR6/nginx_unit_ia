@@ -83,7 +83,18 @@ def analyze_request() -> dict:
     category = result["nids"].get("majority", result["nids"]["label"])
     ensemble_label = str(result.get("ensemble", {}).get("label", "normal")).lower()
     is_attack_ensemble = ensemble_label != "normal"
-    is_attack = is_attack_ensemble or _is_attack(category)
+    sev_label = str(result["severity"]["label"]).lower()
+    is_attack = (is_attack_ensemble or _is_attack(category)) and sev_label != "error"
+
+    if is_attack and str(result["anomaly"]["label"]).lower() in ("normal", "none"):
+        score = result.get("ensemble", {}).get("score", 1.0)
+        result["anomaly"]["label"] = "anomaly"
+        result["anomaly"]["score"] = [1 - score, score]
+        result["intensity"] = detection.calculate_intensity(
+            result["severity"]["label"],
+            result["anomaly"]["score"],
+            result.get("semantic", {}).get("similarity", 1.0),
+        )
     logger.info(
         "Detection result - severity: %s, anomaly: %s, nids: %s",
         result["severity"]["label"],

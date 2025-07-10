@@ -103,6 +103,8 @@ para que o resultado desse ensemble possa substituir o rótulo do modelo de
 anomalia quando indicar um ataque.
 O resultado desse ensemble define o campo `is_attack` salvo no banco de dados,
 distinguindo entre *Logs de Ameaças* e *Logs Comuns*.
+Logs classificados com severidade `error` são sempre tratados como comuns,
+mesmo que os demais modelos indiquem ataque.
 
 ## Banco de dados
 
